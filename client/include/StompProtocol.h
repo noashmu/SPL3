@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../include/ConnectionHandler.h"
+#include "event.h"
 
 // TODO: implement the STOMP protocol
 class StompProtocol
@@ -12,12 +13,13 @@ private:
    //std::unordered_map<std::string, std::vector<Event>> emergencyChannels;
     std::mutex stateMutex; // For thread safety
     std::thread inputThread, responseThread;
+    int totalReport;
 
     // Helper methods for creating STOMP frames
     std::string createConnectFrame(const std::string& host, const std::string& username, const std::string& password);
     std::string createSubscribeFrame(const std::string& channel, int id, int receipt);
     std::string createUnsubscribeFrame(int id, int receipt);
-    std::string createSendFrame(const std::string& destination, const std::string& message);
+    std::string createSendFrame(const std::string& destination, event event); //we change it so it will get event
     std::string createDisconnectFrame(int receipt);
 
     // Response handling
