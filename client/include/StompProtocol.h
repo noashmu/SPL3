@@ -28,7 +28,6 @@ private:
     void handleCommand(const std::string& command);
 
     // Utility methods
-    void parseAndStoreEvents(const std::string& jsonFile);
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
     void report(const std::string& filePath);
     void saveEvent(const std::string& channelName, const event& event);

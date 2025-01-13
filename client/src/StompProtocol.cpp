@@ -77,26 +77,31 @@
 
     }
 
-    void StompProtocol::parseAndStoreEvents(const std::string& jsonFile){
 
-    }
     void StompProtocol::report(const std::string& filePath) {
         // Parse the events file.
         names_and_events eventsData = parseEventsFile(filePath);
         const std::string& channelName = eventsData.channel_name;
         std::vector<event>& events = eventsData.events;
 
-
+        if (events.empty()) {
+            return;
+        }
         // Save and send each event.
         for (const auto& event : events) {
             saveEvent(channelName, event);
-            createSendFrame(channelName,event);
+            connectionHandler.sendFrameAscii(createSendFrame(channelName,event),'\0');
 
         }
-        }
-    void StompProtocol::saveEvent(const std::string& channelName, const event& event) {
-
-            eventsByChannelAndUser[username][channelName].push_back(event);
+    }
+    void StompProtocol::saveEvent(const std::string& channelName, const event& event1) {
+            if (eventsByChannelAndUser.find(username) == eventsByChannelAndUser.end()) {
+                eventsByChannelAndUser[username] = std::map<std::string, std::vector<event>>();
+            }
+            if (eventsByChannelAndUser[username].find(channelName) == eventsByChannelAndUser[username].end()) {
+                eventsByChannelAndUser[username][channelName] = std::vector<event>();
+            }
+            eventsByChannelAndUser[username][channelName].push_back(event1);
 
     }
     // Helper function: Convert epoch to date string
@@ -135,14 +140,22 @@
              if (event.get_general_information().at("forces_arrival_at_scene") == "true") {
             forcesArrivalCount++;
              }
-    }
+       }
+        if (userMap == eventsByChannelAndUser.end()) {
+            std::cerr << "Error: User not found: " << user << std::endl;
+            return;
+        }
+
+        if (channelMap == userMap->second.end()) {
+            std::cerr << "Error: Channel not found for user: " << channel << std::endl;
+            return;
+        }
+
 
 
         if (!std::filesystem::exists(outputFile)) { //if file is not exist, create it
             std::ofstream file(outputFile);
-            if (file.is_open()) {
-                file.close(); // סגור את הקובץ אחרי יצירתו
-            } else {
+            if (!file.is_open()) {
                 std::cerr << "Error: Could not create the file: " << outputFile << std::endl;
                 return;
             }
@@ -151,33 +164,30 @@
         std::ofstream file(outputFile, std::ios::app);
         if (file.is_open()) {
             file << "Channel: " << channel << std::endl;
-            file << "Stas:"<< std::endl;
+            file << "Stats:"<< std::endl;
             file << "Total:" <<  events.size() << std::endl;
             file << "active: " << activeCount << "\n";
             file << "forces arrival at scene: " << forcesArrivalCount << "\n";
             file << "Event Reports:\n";
-        int reportNumber=0;
+        int reportNumber=1;
         for (const auto& event : events) {
-             file << "Report_" << reportNumber++ << ":\n";
+             file << "Report_" << reportNumber << ":\n";
              file << "city: " << event.get_city() << "\n";
              file << "date time: " << epochToDate(event.get_date_time()) << "\n";
              file << "event name: " << event.get_name() << "\n";
              file << "summary: " << createSummary(event.get_description()) << "\n";
+             reportNumber++;
     }
 
     file.close();
-
-
-            file.close();
-            std::cout << "Summary saved to file: " << outputFile << std::endl;
-        } else {
-            std::cerr << "Error: Could not write to the file: " << outputFile << std::endl;
-        }
+    }
     }
 
-    StompProtocol::StompProtocol(){
+StompProtocol::StompProtocol(ConnectionHandler& handler) 
+    : connectionHandler(handler), loggedIn(false), username(""), inputThread(), responseThread() {
+}
 
-    }
+
 
     StompProtocol::~StompProtocol(){
 
@@ -186,3 +196,4 @@
     void StompProtocol::run() {
 
     }
+    
