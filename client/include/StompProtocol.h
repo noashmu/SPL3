@@ -13,7 +13,8 @@ private:
    //std::unordered_map<std::string, std::vector<Event>> emergencyChannels;
     std::mutex stateMutex; // For thread safety
     std::thread inputThread, responseThread;
-    int totalReport;
+    std::map<std::string, std::map<std::string, std::vector<event>>> eventsByChannelAndUser;
+
 
     // Helper methods for creating STOMP frames
     std::string createConnectFrame(const std::string& host, const std::string& username, const std::string& password);
@@ -27,8 +28,14 @@ private:
     void handleCommand(const std::string& command);
 
     // Utility methods
-    void parseAndStoreEvents(const std::string& jsonFile);
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
+    void report(const std::string& filePath);
+    void saveEvent(const std::string& channelName, const event& event);
+    std::string epochToDate(time_t epochTime);
+    std::string createSummary(const std::string& description);
+
+
+
 
 public:
     StompProtocol(ConnectionHandler& handler);

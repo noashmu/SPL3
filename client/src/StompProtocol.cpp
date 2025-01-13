@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 
+  
 
     std::string StompProtocol::createConnectFrame(const std::string& host, const std::string& username, const std::string& password){
         std::string frame = "CONNECT\n";
@@ -57,7 +58,6 @@
         frame += "\n"; // Empty line indicating the end of the headers
         frame += '\0'; // Null character to terminate the STOMP frame
 
-        totalReport++;
 
         return frame;
     }
@@ -77,16 +77,85 @@
 
     }
 
-    void StompProtocol::parseAndStoreEvents(const std::string& jsonFile){
 
+    void StompProtocol::report(const std::string& filePath) {
+        // Parse the events file.
+        names_and_events eventsData = parseEventsFile(filePath);
+        const std::string& channelName = eventsData.channel_name;
+        std::vector<event>& events = eventsData.events;
+
+        if (events.empty()) {
+            return;
+        }
+        // Save and send each event.
+        for (const auto& event : events) {
+            saveEvent(channelName, event);
+            connectionHandler.sendFrameAscii(createSendFrame(channelName,event),'\0');
+
+        }
+    }
+    void StompProtocol::saveEvent(const std::string& channelName, const event& event1) {
+            if (eventsByChannelAndUser.find(username) == eventsByChannelAndUser.end()) {
+                eventsByChannelAndUser[username] = std::map<std::string, std::vector<event>>();
+            }
+            if (eventsByChannelAndUser[username].find(channelName) == eventsByChannelAndUser[username].end()) {
+                eventsByChannelAndUser[username][channelName] = std::vector<event>();
+            }
+            eventsByChannelAndUser[username][channelName].push_back(event1);
+
+    }
+    // Helper function: Convert epoch to date string
+        std::string StompProtocol::epochToDate(time_t epochTime) {
+            std::ostringstream oss;
+            std::tm* tmPtr = std::localtime(&epochTime);
+            oss << std::put_time(tmPtr, "%d/%m/%y %H:%M");
+            return oss.str();
+        }
+
+    // Helper function: Create a summary from description
+    std::string StompProtocol::createSummary(const std::string& description) {
+        if (description.size() <= 27) {
+            return description;
+        }
+        return description.substr(0, 27) + "...";
     }
 
     void StompProtocol::saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile){
+        auto userMap = eventsByChannelAndUser.find(user);
+        auto channelMap = userMap->second.find(channel);
+
+        std::vector<event>& events = channelMap->second;
+        std::sort(events.begin(), events.end(), [](const event& a, const event& b) {
+        if (a.get_date_time() != b.get_date_time()) {
+            return a.get_date_time() < b.get_date_time();
+        }
+        return a.get_name() < b.get_name();
+    });
+        int activeCount = 0;
+        int forcesArrivalCount = 0;
+        for (const auto& event : events) {
+            if (event.get_general_information().at("active") == "true") {
+            activeCount++;
+              }
+             if (event.get_general_information().at("forces_arrival_at_scene") == "true") {
+            forcesArrivalCount++;
+             }
+       }
+        if (userMap == eventsByChannelAndUser.end()) {
+            std::cerr << "Error: User not found: " << user << std::endl;
+            return;
+        }
+
+        if (channelMap == userMap->second.end()) {
+            std::cerr << "Error: Channel not found for user: " << channel << std::endl;
+            return;
+        }
+
+
+
         if (!std::filesystem::exists(outputFile)) { //if file is not exist, create it
             std::ofstream file(outputFile);
-            if (file.is_open()) {
-                file.close(); // סגור את הקובץ אחרי יצירתו
-            } else {
+            if (!file.is_open()) {
                 std::cerr << "Error: Could not create the file: " << outputFile << std::endl;
                 return;
             }
@@ -95,27 +164,30 @@
         std::ofstream file(outputFile, std::ios::app);
         if (file.is_open()) {
             file << "Channel: " << channel << std::endl;
-            file << "Stas:"<< std::endl;
-            file << "Total:" << this->totalReport << std::endl;
-
-
-            ////////////////////////
-            ////////need to continue, need to add data
-            ///////////////////////
-
-
-
-            file.close();
-            std::cout << "Summary saved to file: " << outputFile << std::endl;
-        } else {
-            std::cerr << "Error: Could not write to the file: " << outputFile << std::endl;
-        }
+            file << "Stats:"<< std::endl;
+            file << "Total:" <<  events.size() << std::endl;
+            file << "active: " << activeCount << "\n";
+            file << "forces arrival at scene: " << forcesArrivalCount << "\n";
+            file << "Event Reports:\n";
+        int reportNumber=1;
+        for (const auto& event : events) {
+             file << "Report_" << reportNumber << ":\n";
+             file << "city: " << event.get_city() << "\n";
+             file << "date time: " << epochToDate(event.get_date_time()) << "\n";
+             file << "event name: " << event.get_name() << "\n";
+             file << "summary: " << createSummary(event.get_description()) << "\n";
+             reportNumber++;
     }
 
-    StompProtocol::StompProtocol(ConnectionHandler& handler){
-        this->totalReport = 0;
-        //this->connectionHandler = handler;
+    file.close();
     }
+    }
+
+StompProtocol::StompProtocol(ConnectionHandler& handler) 
+    : connectionHandler(handler), loggedIn(false), username(""), inputThread(), responseThread() {
+}
+
+
 
     StompProtocol::~StompProtocol(){
 
@@ -124,3 +196,4 @@
     void StompProtocol::run() {
 
     }
+    
