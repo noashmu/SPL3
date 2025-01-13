@@ -14,6 +14,7 @@ private:
     std::mutex stateMutex; // For thread safety
     std::thread inputThread, responseThread;
     int totalReport;
+    int id;
 
     // Helper methods for creating STOMP frames
     std::string createConnectFrame(const std::string& host, const std::string& username, const std::string& password);
@@ -29,6 +30,9 @@ private:
     // Utility methods
     void parseAndStoreEvents(const std::string& jsonFile);
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
+
+    void splitBySpaces(const std::string& str, std::vector<std::string>& result);
+
 
 public:
     StompProtocol(ConnectionHandler& handler);
