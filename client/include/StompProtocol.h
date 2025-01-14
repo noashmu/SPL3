@@ -38,7 +38,7 @@ private:
 
 
 public:
-    StompProtocol(ConnectionHandler& handler);
+    StompProtocol();
     ~StompProtocol();
 
     void run(); // Starts threads for input and response handling

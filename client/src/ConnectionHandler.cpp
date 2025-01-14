@@ -108,3 +108,28 @@ void ConnectionHandler::close() {
 		std::cout << "closing failed: connection already closed" << std::endl;
 	}
 }
+
+    // // Move constructor
+    // ConnectionHandler::ConnectionHandler(ConnectionHandler&& other) 
+    //     : host_(std::move(other.host_)), port_(other.port_),
+    //       io_service_(std::move(other.io_service_)), socket_(std::move(other.socket_)) {}
+
+    // // Move assignment operator
+    // void ConnectionHandler::operator=(ConnectionHandler&& other) {
+    //     if (this != &other) {
+    //         // Clean up existing resources
+    //         close();
+
+    //         // Transfer ownership
+    //         const_cast<std::string&>(host_) = std::move(other.host_); // Host and port need casting due to const
+    //         const_cast<short&>(port_) = other.port_;
+    //         io_service_ = std::move(other.io_service_);
+    //         socket_ = std::move(other.socket_);
+    //     }
+    //     return *this;
+    // }
+
+	void ConnectionHandler::operator=(ConnectionHandler& other):host_(other.host_),port_(other.port_){
+
+	}
+
