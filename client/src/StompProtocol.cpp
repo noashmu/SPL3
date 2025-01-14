@@ -246,8 +246,10 @@
     }
     }
 
-    StompProtocol::StompProtocol() 
-        :loggedIn(false), username(""), inputThread(), responseThread() {
+    StompProtocol::StompProtocol() { //:loggedIn(false), username(""), inputThread(), responseThread() 
+        this->connectionHandler = new connectionHandler();
+        this->loggedIn =false;
+        this->username = "";
     }
 
 
