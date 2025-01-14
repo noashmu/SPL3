@@ -94,7 +94,7 @@
             else{
                 std::cout << "Cannot connect to host:7777 please try to login again" << std::endl;
             }
-            //need command to send the message to the
+
         }
         else if (commandName == "join")
         {
@@ -192,7 +192,7 @@
             return a.get_date_time() < b.get_date_time();
         }
         return a.get_name() < b.get_name();
-    });
+        });
         int activeCount = 0;
         int forcesArrivalCount = 0;
         for (const auto& event : events) {
@@ -231,19 +231,19 @@
             file << "active: " << activeCount << "\n";
             file << "forces arrival at scene: " << forcesArrivalCount << "\n";
             file << "Event Reports:\n";
-        int reportNumber=1;
-        for (const auto& event : events) {
-             file << "Report_" << reportNumber << ":\n";
-             file << "city: " << event.get_city() << "\n";
-             file << "date time: " << epochToDate(event.get_date_time()) << "\n";
-             file << "event name: " << event.get_name() << "\n";
-             file << "summary: " << createSummary(event.get_description()) << "\n";
-             reportNumber++;
-    }
+            
+            int reportNumber=1;
+            for (const auto& event : events) {
+                file << "Report_" << reportNumber << ":\n";
+                file << "city: " << event.get_city() << "\n";
+                file << "date time: " << epochToDate(event.get_date_time()) << "\n";
+                file << "event name: " << event.get_name() << "\n";
+                file << "summary: " << createSummary(event.get_description()) << "\n";
+                reportNumber++;
+            }
 
-    file.close();
-
-    }
+            file.close();
+        }
     }
 
     StompProtocol::StompProtocol() { //:loggedIn(false), username(""), inputThread(), responseThread() 
