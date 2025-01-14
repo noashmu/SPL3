@@ -13,8 +13,13 @@ private:
    //std::unordered_map<std::string, std::vector<Event>> emergencyChannels;
     std::mutex stateMutex; // For thread safety
     std::thread inputThread, responseThread;
+<<<<<<< HEAD
     std::map<std::string, std::map<std::string, std::vector<event>>> eventsByChannelAndUser;
 
+=======
+    int totalReport;
+    int id;
+>>>>>>> StompProtocolCountine
 
     // Helper methods for creating STOMP frames
     std::string createConnectFrame(const std::string& host, const std::string& username, const std::string& password);
@@ -35,6 +40,9 @@ private:
     std::string createSummary(const std::string& description);
 
 
+
+
+    void splitBySpaces(const std::string& str, std::vector<std::string>& result);
 
 
 public:

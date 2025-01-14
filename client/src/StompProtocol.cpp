@@ -74,7 +74,69 @@
     }
 
     void StompProtocol::handleCommand(const std::string& command){
+        std::vector<std::string> commandDetails;
+        splitBySpaces(command,commandDetails);
+        std::string frame;
+        std::string commandName = commandDetails[0];
+    
 
+        if(commandName == "login"){
+            if(commandDetails.size()!=4){
+                std::cout<< "login command needs 3 args: {host:port} {username} {password}" <<std::endl;
+                return;
+            }
+            std::vector<std::string> result;
+            split_str(commandDetails[1],':', result);
+            this->connectionHandler = new ConnectionHandler(result[0], static_cast<short>(std::stoi(result[1])));
+            if(this->connectionHandler.connect()){
+                frame = createConnectFrame(commandDetails[1], commandDetails[2], commandDetails[3]);
+            }
+            else{
+                std::cout << "Cannot connect to host:7777 please try to login again" << std::endl;
+            }
+            //need command to send the message to the
+        }
+        else if (commandName == "join")
+        {
+            if(commandDetails.size()!=2){
+                std::cout<< "join command needs 1 arg: {channel_name}" <<std::endl;
+                return;
+            }
+
+            frame = createSubscribeFrame(commandDetails[1],);
+        } 
+        else if(commandName == "exit"){
+            if(commandDetails.size()!=2){
+                std::cout<< "exit command needs 1 args: {channel_name}" <<std::endl;
+                return;
+            }
+
+            frame = createUnsubscribeFrame();
+        }
+        else if(commandName == "report"){
+            if(commandDetails.size()!=2){
+                std::cout<< "report command needs 1 args: {file}" <<std::endl;
+                return;
+            }
+
+            frame = createSendFrame();
+        }
+        else if(commandName == "summary"){
+            if(commandDetails.size()!=4){
+                std::cout<< "summary command needs 4 args: {channel_name} {user} {file}" <<std::endl;
+                return;
+            }
+
+            saveSummaryToFile(commandDetails[1], commandDetails[2], commandDetails[3]);
+        }
+        else if(commandName == "logout"){
+            if(commandDetails.size()!=1){
+                std::cout<< "logout command needs 0 args" <<std::endl;
+                return;
+            }
+
+            frame = createDisconnectFrame();
+        }
     }
 
 
@@ -180,12 +242,13 @@
     }
 
     file.close();
+
     }
     }
 
-StompProtocol::StompProtocol(ConnectionHandler& handler) 
-    : connectionHandler(handler), loggedIn(false), username(""), inputThread(), responseThread() {
-}
+    StompProtocol::StompProtocol() 
+        :loggedIn(false), username(""), inputThread(), responseThread() {
+    }
 
 
 
@@ -196,4 +259,19 @@ StompProtocol::StompProtocol(ConnectionHandler& handler)
     void StompProtocol::run() {
 
     }
-    
+
+    void StompProtocol::splitBySpaces(const std::string& str, std::vector<std::string>& result) {
+        std::istringstream iss(str); // זרם קלט מתוך המחרוזת
+        std::string word;
+        while (iss >> word) { // קרא מילה אחת בכל פעם לפי רווחים
+            result.push_back(word);
+        }
+    }
+
+    void StompProtocol::split_str(const std::string& str, char delimiter, std::vector<std::string>& result) {
+        std::stringstream ss(str);
+        std::string item;
+        while (std::getline(ss, item, delimiter)) {
+            result.push_back(item);
+        }
+    }
