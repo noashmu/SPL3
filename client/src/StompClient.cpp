@@ -2,6 +2,8 @@
 #include <string>
 #include "ConnectionHandler.h"
 #include <StompProtocol.h>
+#include <CommandHandler.h>
+
 
 std::vector<std::string> split_str(std::string command) {
    std::vector<std::string> result;
@@ -33,13 +35,22 @@ std::vector<std::string> split_str(std::string command) {
 int main(int argc, char *argv[]) {
 	std::string command;
 	while(std::getline(std::cin,command)){
-		if(command.size()!=4){
-            std::cout<< "login command needs 3 args: {host:port} {username} {password}" <<std::endl;
-            
+		std::istringstream iss(command);
+        std::vector<std::string> tokens;
+        std::string token;
+
+        // Split the command into tokens (words)
+        while (iss >> token) {
+            tokens.push_back(token);
         }
-		else if(command[0]!= "login"){
-			std::cout<< "please login first" <<std::endl;
-		}
+
+        // Check if the command has exactly 4 parts
+        if (tokens.size() != 4) {
+            std::cout << "login command needs 3 args: {host:port} {username} {password}" << std::endl;
+        } 
+        else if (tokens[0] != "login") {
+            std::cout << "please login first" << std::endl;
+        }
 		else{
 			std::vector<std::string> commandDetails;
 			splitBySpaces(command,commandDetails);
@@ -47,6 +58,30 @@ int main(int argc, char *argv[]) {
 
             ConnectionHandler connectionHandler(result[0], static_cast<short>(std::stoi(result[1])));
 			StompProtocol protocol(connectionHandler);
+          //      ResponseHandler responseHandler(protocol);
+           CommandHandler commandHandler(protocol);
+
+    // Create threads for user input and server response handling
+    std::thread inputThread([&]() {
+        std::string command;
+        while (std::getline(std::cin, command)) {
+            commandHandler.handleCommand(command);
+            if (command == "logout") {
+                break;
+            }
+        }
+    });
+
+    std::thread responseThread([&]() {
+        std::string frame;
+        while (connectionHandler.getFrameAscii(frame, '\0')) {
+        //    responseHandler.handleResponse(frame);
+        }
+    });
+
+    // Wait for threads to finish
+    inputThread.join();
+    responseThread.join();
 		}
 	}
 }
