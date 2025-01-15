@@ -73,71 +73,71 @@
 
     }
 
-    void StompProtocol::handleCommand(const std::string& command){
-        std::vector<std::string> commandDetails;
-        splitBySpaces(command,commandDetails);
-        std::string frame;
-        std::string commandName = commandDetails[0];
+    // void StompProtocol::handleCommand(const std::string& command){
+    //     std::vector<std::string> commandDetails;
+    //     splitBySpaces(command,commandDetails);
+    //     std::string frame;
+    //     std::string commandName = commandDetails[0];
     
 
-        if(commandName == "login"){
-            if(commandDetails.size()!=4){
-                std::cout<< "login command needs 3 args: {host:port} {username} {password}" <<std::endl;
-                return;
-            }
-            std::vector<std::string> result;
-            split_str(commandDetails[1],':', result);
-            this->connectionHandler = new ConnectionHandler(result[0], static_cast<short>(std::stoi(result[1])));
-            if(this->connectionHandler.connect()){
-                frame = createConnectFrame(commandDetails[1], commandDetails[2], commandDetails[3]);
-            }
-            else{
-                std::cout << "Cannot connect to host:7777 please try to login again" << std::endl;
-            }
+    //     if(commandName == "login"){
+    //         if(commandDetails.size()!=4){
+    //             std::cout<< "login command needs 3 args: {host:port} {username} {password}" <<std::endl;
+    //             return;
+    //         }
+    //         std::vector<std::string> result;
+    //         split_str(commandDetails[1],':', result);
+    //         this->connectionHandler = new ConnectionHandler(result[0], static_cast<short>(std::stoi(result[1])));
+    //         if(this->connectionHandler.connect()){
+    //             frame = createConnectFrame(commandDetails[1], commandDetails[2], commandDetails[3]);
+    //         }
+    //         else{
+    //             std::cout << "Cannot connect to host:7777 please try to login again" << std::endl;
+    //         }
 
-        }
-        else if (commandName == "join")
-        {
-            if(commandDetails.size()!=2){
-                std::cout<< "join command needs 1 arg: {channel_name}" <<std::endl;
-                return;
-            }
+    //     }
+    //     else if (commandName == "join")
+    //     {
+    //         if(commandDetails.size()!=2){
+    //             std::cout<< "join command needs 1 arg: {channel_name}" <<std::endl;
+    //             return;
+    //         }
 
-            frame = createSubscribeFrame(commandDetails[1],);
-        } 
-        else if(commandName == "exit"){
-            if(commandDetails.size()!=2){
-                std::cout<< "exit command needs 1 args: {channel_name}" <<std::endl;
-                return;
-            }
+    //         frame = createSubscribeFrame(commandDetails[1],);
+    //     } 
+    //     else if(commandName == "exit"){
+    //         if(commandDetails.size()!=2){
+    //             std::cout<< "exit command needs 1 args: {channel_name}" <<std::endl;
+    //             return;
+    //         }
 
-            frame = createUnsubscribeFrame();
-        }
-        else if(commandName == "report"){
-            if(commandDetails.size()!=2){
-                std::cout<< "report command needs 1 args: {file}" <<std::endl;
-                return;
-            }
+    //         frame = createUnsubscribeFrame();
+    //     }
+    //     else if(commandName == "report"){
+    //         if(commandDetails.size()!=2){
+    //             std::cout<< "report command needs 1 args: {file}" <<std::endl;
+    //             return;
+    //         }
 
-            frame = createSendFrame();
-        }
-        else if(commandName == "summary"){
-            if(commandDetails.size()!=4){
-                std::cout<< "summary command needs 4 args: {channel_name} {user} {file}" <<std::endl;
-                return;
-            }
+    //         frame = createSendFrame();
+    //     }
+    //     else if(commandName == "summary"){
+    //         if(commandDetails.size()!=4){
+    //             std::cout<< "summary command needs 4 args: {channel_name} {user} {file}" <<std::endl;
+    //             return;
+    //         }
 
-            saveSummaryToFile(commandDetails[1], commandDetails[2], commandDetails[3]);
-        }
-        else if(commandName == "logout"){
-            if(commandDetails.size()!=1){
-                std::cout<< "logout command needs 0 args" <<std::endl;
-                return;
-            }
+    //         saveSummaryToFile(commandDetails[1], commandDetails[2], commandDetails[3]);
+    //     }
+    //     else if(commandName == "logout"){
+    //         if(commandDetails.size()!=1){
+    //             std::cout<< "logout command needs 0 args" <<std::endl;
+    //             return;
+    //         }
 
-            frame = createDisconnectFrame();
-        }
-    }
+    //         frame = createDisconnectFrame();
+    //     }
+    // }
 
 
     void StompProtocol::report(const std::string& filePath) {
@@ -246,10 +246,7 @@
         }
     }
 
-    StompProtocol::StompProtocol() { //:loggedIn(false), username(""), inputThread(), responseThread() 
-        this->connectionHandler = new connectionHandler();
-        this->loggedIn =false;
-        this->username = "";
+    StompProtocol::StompProtocol(ConnectionHandler& c):connectionHandler(c),loggedIn(false),username("") { //:loggedIn(false), username(""), inputThread(), responseThread() 
     }
 
 
@@ -276,4 +273,57 @@
         while (std::getline(ss, item, delimiter)) {
             result.push_back(item);
         }
+    }
+    void StompProtocol::login(const std::string& hostPort, const std::string& user, const std::string& password)
+    {
+        if (loggedIn) {
+        std::cout << "The client is already logged in, log out before trying again" << std::endl;
+        return;
+        }
+
+    // Create the CONNECT frame
+    std::string frame = createConnectFrame(hostPort,user,password);
+    // Send the CONNECT frame
+    if(!connectionHandler.sendFrameAscii(frame, '\0')){
+      std::cout << "Could not connect to server" << std::endl;
+        return;
+    }
+    username = user;
+    loggedIn = true;
+    }
+    void StompProtocol::joinChannel(const std::string& channelName)
+    {
+        if (!loggedIn) {
+        std::cout << "Please log in first" << std::endl;
+        return;
+    }
+
+      std::string frame= createSubscribeFrame(channelName,subscriptionId++,reciptId++);
+
+     connectionHandler.sendFrameAscii(frame, '\0');
+  
+    }
+    void StompProtocol::exitChannel(const std::string& channelName)
+    {
+  if (!loggedIn) {
+        std::cout << "Please log in first" << std::endl;
+        return;
+    }
+
+    std::string frame = createUnsubscribeFrame(subscriptionId-1,reciptId++);
+    connectionHandler.sendFrameAscii(frame, '\0');
+    }
+    void StompProtocol::logout()
+    {
+        if (!loggedIn) {
+        std::cout << "You are not logged in" << std::endl;
+        return;
+        }
+
+        std::string frame=createDisconnectFrame(reciptId++);
+
+    if (connectionHandler.sendFrameAscii(frame, '\0')) {
+        loggedIn = false;
+        username.clear();
+    }
     }
