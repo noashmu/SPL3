@@ -24,23 +24,11 @@ void CommandHandler::handleCommand(const std::string& command) {
 
     // Process specific commands
     if (action == "login") {
-        if (tokens.size() != 4) {
-            std::cout<< "login command needs 3 args: {host:port} {username} {password}" <<std::endl;
-        }else if (tokens[0] != "login") {
-            std::cout << "please login first" << std::endl;
-        }
-		else{
 			std::vector<std::string> commandDetails;
 			splitBySpaces(command,commandDetails);
             std::vector<std::string> hostPort=split_str(commandDetails[1]);
 
-            ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-			StompProtocol protocol(connectionHandler);
-            ResponseHandler responseHandler(protocol);
-            //CommandHandler commandHandler(protocol);
-
             protocol.login(hostPort[0],hostPort[1], tokens[2], tokens[3]);
-        }
     } else if (action == "join") {
         if (tokens.size() != 2) {
                 std::cout<< "join command needs 1 arg: {channel_name}" <<std::endl;

@@ -36,37 +36,37 @@ std::vector<std::string> split_str(std::string command) {
 int main(int argc, char *argv[]) {
 	std::string command;
 	bool islogin =false;
-	while(std::getline(std::cin,command) && !islogin){
-		std::istringstream iss(command);
-        std::vector<std::string> tokens;
-        std::string token;
+	// while(std::getline(std::cin,command) && !islogin){
+	// 	std::istringstream iss(command);
+    //     std::vector<std::string> tokens;
+    //     std::string token;
 
-        // Split the command into tokens (words)
-        while (iss >> token) {
-            tokens.push_back(token);
-        }
+    //     // Split the command into tokens (words)
+    //     while (iss >> token) {
+    //         tokens.push_back(token);
+    //     }
 
-        // Check if the command has exactly 4 parts
-		if (tokens[0]== "login")
-		{
-			if (tokens.size() != 4) {
-            	std::cout << "login command needs 3 args: {host:port} {username} {password}" << std::endl;
-			} 
-			else if (tokens[0] != "login") {
-				std::cout << "please login first" << std::endl;
-			}
-			else{
-				std::vector<std::string> hostPort=split_str(tokens[1]);
+    //     // Check if the command has exactly 4 parts
+	// 	if (tokens[0]== "login")
+	// 	{
+	// 		if (tokens.size() != 4) {
+    //         	std::cout << "login command needs 3 args: {host:port} {username} {password}" << std::endl;
+	// 		} 
+	// 		else if (tokens[0] != "login") {
+	// 			std::cout << "please login first" << std::endl;
+	// 		}
+	// 		else{
+	// 			std::vector<std::string> hostPort=split_str(tokens[1]);
 
-				ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-				StompProtocol protocol(connectionHandler);
-			//      ResponseHandler responseHandler(protocol);
-				CommandHandler commandHandler(protocol);
-				islogin=true;
-			}
-		}
+	// 			ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+	// 			StompProtocol protocol(connectionHandler);
+	// 		//      ResponseHandler responseHandler(protocol);
+	// 			CommandHandler commandHandler(protocol);
+	// 			islogin=true;
+	// 		}
+	// 	}
         
-	}
+	// }
 
     // Create threads for user input and server response handling
     std::thread inputThread([&]() {
@@ -77,7 +77,6 @@ int main(int argc, char *argv[]) {
 			std::istringstream iss(command);
 			std::vector<std::string> tokens;
 			std::string token;
-			CommandHandler commandHandler;
 			// Split the command into tokens (words)
 			while (iss >> token) {
 				tokens.push_back(token);
@@ -98,16 +97,16 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			if(islogin){
-				
 				ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
 				StompProtocol protocol(connectionHandler);
 			//      ResponseHandler responseHandler(protocol);
 				CommandHandler commandHandler(protocol);
+				commandHandler.handleCommand(command);
+				if (command == "logout") {
+                	break;
+            	}
 			}
-            commandHandler.handleCommand(command);
-            if (command == "logout") {
-                break;
-            }
+            
         }
     });
 
@@ -121,6 +120,4 @@ int main(int argc, char *argv[]) {
     // Wait for threads to finish
     inputThread.join();
     responseThread.join();
-		}
-	}
 }
