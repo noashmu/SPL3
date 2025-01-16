@@ -246,7 +246,7 @@
         }
     }
 
-    StompProtocol::StompProtocol(ConnectionHandler& c):connectionHandler(c),loggedIn(false),username("") { //:loggedIn(false), username(""), inputThread(), responseThread() 
+    StompProtocol::StompProtocol(ConnectionHandler& c,bool islogin):connectionHandler(c),loggedIn(islogin),username("") { //:loggedIn(false), username(""), inputThread(), responseThread() 
     }
 
 

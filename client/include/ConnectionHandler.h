@@ -19,7 +19,7 @@ public:
 
 	// Delete copy constructor and assignment operator
     //ConnectionHandler(const ConnectionHandler&);
-    void operator=(ConnectionHandler& other);
+   // void operator=(ConnectionHandler& other);
 
     // // Allow move constructor and move assignment if needed
     // ConnectionHandler(ConnectionHandler&&);
