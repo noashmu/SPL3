@@ -274,22 +274,23 @@
             result.push_back(item);
         }
     }
-    void StompProtocol::login(const std::string& hostPort, const std::string& user, const std::string& password)
+    void StompProtocol::login(const std::string& host, const std::string& port, const std::string& user, const std::string& password)
     {
         if (loggedIn) {
-        std::cout << "The client is already logged in, log out before trying again" << std::endl;
-        return;
+            std::cout << "The client is already logged in, log out before trying again" << std::endl;
+            return;
         }
 
-    // Create the CONNECT frame
-    std::string frame = createConnectFrame(hostPort,user,password);
-    // Send the CONNECT frame
-    if(!connectionHandler.sendFrameAscii(frame, '\0')){
-      std::cout << "Could not connect to server" << std::endl;
-        return;
-    }
-    username = user;
-    loggedIn = true;
+        // Create the CONNECT frame
+        std::string frame = createConnectFrame(host,user,password);
+        // Send the CONNECT frame
+        
+        if(!connectionHandler.sendFrameAscii(frame, '\0')){
+            std::cout << "Could not connect to server" << std::endl;
+            return;
+        }
+        username = user;
+        loggedIn = true;
     }
     void StompProtocol::joinChannel(const std::string& channelName)
     {

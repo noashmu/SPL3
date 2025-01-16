@@ -32,9 +32,11 @@ std::vector<std::string> split_str(std::string command) {
         }
     }
 
+
 int main(int argc, char *argv[]) {
 	std::string command;
-	while(std::getline(std::cin,command)){
+	bool islogin =false;
+	while(std::getline(std::cin,command) && !islogin){
 		std::istringstream iss(command);
         std::vector<std::string> tokens;
         std::string token;
@@ -45,26 +47,63 @@ int main(int argc, char *argv[]) {
         }
 
         // Check if the command has exactly 4 parts
-        if (tokens.size() != 4) {
-            std::cout << "login command needs 3 args: {host:port} {username} {password}" << std::endl;
-        } 
-        else if (tokens[0] != "login") {
-            std::cout << "please login first" << std::endl;
-        }
-		else{
-			std::vector<std::string> commandDetails;
-			splitBySpaces(command,commandDetails);
-           std::vector<std::string> result=split_str(commandDetails[1]);
+		if (tokens[0]== "login")
+		{
+			if (tokens.size() != 4) {
+            	std::cout << "login command needs 3 args: {host:port} {username} {password}" << std::endl;
+			} 
+			else if (tokens[0] != "login") {
+				std::cout << "please login first" << std::endl;
+			}
+			else{
+				std::vector<std::string> hostPort=split_str(tokens[1]);
 
-            ConnectionHandler connectionHandler(result[0], static_cast<short>(std::stoi(result[1])));
-			StompProtocol protocol(connectionHandler);
-          //      ResponseHandler responseHandler(protocol);
-           CommandHandler commandHandler(protocol);
+				ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+				StompProtocol protocol(connectionHandler);
+			//      ResponseHandler responseHandler(protocol);
+				CommandHandler commandHandler(protocol);
+				islogin=true;
+			}
+		}
+        
+	}
 
     // Create threads for user input and server response handling
     std::thread inputThread([&]() {
         std::string command;
+		bool islogin =false;
+		std::vector<std::string> hostPort;
         while (std::getline(std::cin, command)) {
+			std::istringstream iss(command);
+			std::vector<std::string> tokens;
+			std::string token;
+			CommandHandler commandHandler;
+			// Split the command into tokens (words)
+			while (iss >> token) {
+				tokens.push_back(token);
+			}
+
+			// Check if the command has exactly 4 parts
+			if (tokens[0]== "login")
+			{
+				if (tokens.size() != 4) {
+					std::cout << "login command needs 3 args: {host:port} {username} {password}" << std::endl;
+				} 
+				else if (tokens[0] != "login") {
+					std::cout << "please login first" << std::endl;
+				}
+				else{
+					hostPort=split_str(tokens[1]);
+					islogin=true;
+				}
+			}
+			if(islogin){
+				
+				ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+				StompProtocol protocol(connectionHandler);
+			//      ResponseHandler responseHandler(protocol);
+				CommandHandler commandHandler(protocol);
+			}
             commandHandler.handleCommand(command);
             if (command == "logout") {
                 break;
