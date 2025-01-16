@@ -328,3 +328,11 @@
         username.clear();
     }
     }
+    void StompProtocol::handleResponse(const std::string& frame,const std::string& responseType)
+    {
+        if (responseType=="RECEIPT")
+        {
+            
+        }
+        
+    }

@@ -16,6 +16,7 @@ private:
     std::mutex stateMutex; // For thread safety
     std::thread inputThread, responseThread;
     std::map<std::string, std::map<std::string, std::vector<event>>> eventsByChannelAndUser;
+    
 
     // Helper methods for creating STOMP frames
     std::string createConnectFrame(const std::string& host, const std::string& username, const std::string& password);
@@ -47,7 +48,7 @@ public:
     void joinChannel(const std::string& channelName);
     void exitChannel(const std::string& channelName);
     void logout();
-    void handleResponse();
+    void handleResponse(const std::string& frame,const std::string& responseType);
     void handleCommand(const std::string& command);
 
 
