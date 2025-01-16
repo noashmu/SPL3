@@ -26,8 +26,20 @@ void CommandHandler::handleCommand(const std::string& command) {
     if (action == "login") {
         if (tokens.size() != 4) {
             std::cout<< "login command needs 3 args: {host:port} {username} {password}" <<std::endl;
-        } else {
-            protocol.login(tokens[1], tokens[2], tokens[3]);
+        }else if (tokens[0] != "login") {
+            std::cout << "please login first" << std::endl;
+        }
+		else{
+			std::vector<std::string> commandDetails;
+			splitBySpaces(command,commandDetails);
+            std::vector<std::string> hostPort=split_str(commandDetails[1]);
+
+            ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+			StompProtocol protocol(connectionHandler);
+            ResponseHandler responseHandler(protocol);
+            //CommandHandler commandHandler(protocol);
+
+            protocol.login(hostPort[0],hostPort[1], tokens[2], tokens[3]);
         }
     } else if (action == "join") {
         if (tokens.size() != 2) {
@@ -63,3 +75,30 @@ void CommandHandler::handleCommand(const std::string& command) {
         std::cout << "Unknown command: " << action << std::endl;
     }
 }
+
+std::vector<std::string> split_str(std::string command) {
+   std::vector<std::string> result;
+   size_t delimiterPos = command.find(':');
+
+        if (delimiterPos != std::string::npos) {
+            // Extract the part after the colon (second word)
+			std::string firstWord = command.substr(delimiterPos - 1);
+
+            std::string secondWord = command.substr(delimiterPos + 1);
+
+            // Optional: Trim any leading/trailing whitespace from the second word
+            secondWord.erase(0, secondWord.find_first_not_of(" \t")); // Trim leading spaces
+            secondWord.erase(secondWord.find_last_not_of(" \t") + 1); // Trim trailing spaces
+			result.push_back(firstWord);
+			result.push_back(secondWord);	
+    }
+	return result;
+}
+
+    void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
+        std::istringstream iss(str); // זרם קלט מתוך המחרוזת
+        std::string word;
+        while (iss >> word) { // קרא מילה אחת בכל פעם לפי רווחים
+            result.push_back(word);
+        }
+    }

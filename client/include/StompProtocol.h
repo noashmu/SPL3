@@ -43,7 +43,7 @@ public:
     ~StompProtocol();
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
     void report(const std::string& filePath);
-    void login(const std::string& hostPort, const std::string& username, const std::string& password);
+    void StompProtocol::login(const std::string& host, const std::string& port, const std::string& user, const std::string& password);
     void joinChannel(const std::string& channelName);
     void exitChannel(const std::string& channelName);
     void logout();
