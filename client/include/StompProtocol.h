@@ -39,7 +39,7 @@ private:
 
 public:
 
-    StompProtocol(ConnectionHandler&);
+    StompProtocol(ConnectionHandler&,bool);
     ~StompProtocol();
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
     void report(const std::string& filePath);

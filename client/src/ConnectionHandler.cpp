@@ -129,7 +129,5 @@ void ConnectionHandler::close() {
     //     return *this;
     // }
 
-	void ConnectionHandler::operator=(ConnectionHandler& other):host_(other.host_),port_(other.port_){
 
-	}
 

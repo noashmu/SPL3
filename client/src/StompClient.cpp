@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
 			}
 			if(islogin){
 				ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-				StompProtocol protocol(connectionHandler);
+				StompProtocol protocol(connectionHandler,islogin);
 			//      ResponseHandler responseHandler(protocol);
 				CommandHandler commandHandler(protocol);
 				commandHandler.handleCommand(command);
@@ -110,14 +110,14 @@ int main(int argc, char *argv[]) {
         }
     });
 
-    std::thread responseThread([&]() {
-        std::string frame;
-        while (connectionHandler.getFrameAscii(frame, '\0')) {
-        //    responseHandler.handleResponse(frame);
-        }
-    });
+    // std::thread responseThread([&]() {
+    //     std::string frame;
+    //     while (connectionHandler.getFrameAscii(frame, '\0')) {
+    //     //    responseHandler.handleResponse(frame);
+    //     }
+    // });
 
     // Wait for threads to finish
     inputThread.join();
-    responseThread.join();
+ //   responseThread.join();
 }
