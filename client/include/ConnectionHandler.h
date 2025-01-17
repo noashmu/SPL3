@@ -17,14 +17,6 @@ public:
 	ConnectionHandler();
 	ConnectionHandler(std::string host, short port);
 
-	// Delete copy constructor and assignment operator
-    //ConnectionHandler(const ConnectionHandler&);
-   // void operator=(ConnectionHandler& other);
-
-    // // Allow move constructor and move assignment if needed
-    // ConnectionHandler(ConnectionHandler&&);
-    // ConnectionHandler& operator=(ConnectionHandler&&);
-
 	virtual ~ConnectionHandler();
 
 	// Connect to the remote machine

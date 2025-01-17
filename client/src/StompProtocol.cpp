@@ -1,3 +1,4 @@
+
 #include "StompProtocol.h"
 #include "event.h"
 #include <string>
@@ -67,10 +68,6 @@
         frame += "receipt:" +std::to_string(receipt)+"\n";
 
         return frame;
-    }
-
-    void StompProtocol::handleResponse(){
-
     }
 
     // void StompProtocol::handleCommand(const std::string& command){
@@ -156,6 +153,7 @@
 
         }
     }
+
     void StompProtocol::saveEvent(const std::string& channelName, const event& event1) {
             if (eventsByChannelAndUser.find(username) == eventsByChannelAndUser.end()) {
                 eventsByChannelAndUser[username] = std::map<std::string, std::vector<event>>();
@@ -166,13 +164,14 @@
             eventsByChannelAndUser[username][channelName].push_back(event1);
 
     }
+
     // Helper function: Convert epoch to date string
-        std::string StompProtocol::epochToDate(time_t epochTime) {
+    std::string StompProtocol::epochToDate(time_t epochTime) {
             std::ostringstream oss;
             std::tm* tmPtr = std::localtime(&epochTime);
             oss << std::put_time(tmPtr, "%d/%m/%y %H:%M");
             return oss.str();
-        }
+    }
 
     // Helper function: Create a summary from description
     std::string StompProtocol::createSummary(const std::string& description) {
@@ -274,6 +273,7 @@
             result.push_back(item);
         }
     }
+
     void StompProtocol::login(const std::string& host, const std::string& port, const std::string& user, const std::string& password)
     {
         if (loggedIn) {
@@ -283,37 +283,39 @@
 
         // Create the CONNECT frame
         std::string frame = createConnectFrame(host,user,password);
+
         // Send the CONNECT frame
-        
         if(!connectionHandler.sendFrameAscii(frame, '\0')){
             std::cout << "Could not connect to server" << std::endl;
             return;
         }
         username = user;
-        loggedIn = true;
+
+        //loggedIn = true;
     }
     void StompProtocol::joinChannel(const std::string& channelName)
     {
-        if (!loggedIn) {
-        std::cout << "Please log in first" << std::endl;
-        return;
-    }
+        // if (!loggedIn) {
+        //     std::cout << "Please login first" << std::endl;
+        //     return;
+        // }
 
-      std::string frame= createSubscribeFrame(channelName,subscriptionId++,reciptId++);
-
-     connectionHandler.sendFrameAscii(frame, '\0');
+        std::string frame= createSubscribeFrame(channelName,subscriptionId++,reciptId++);
+        connectionHandler.sendFrameAscii(frame, '\0');
   
     }
+
     void StompProtocol::exitChannel(const std::string& channelName)
     {
-  if (!loggedIn) {
-        std::cout << "Please log in first" << std::endl;
-        return;
+        // if (!loggedIn) {
+        //     std::cout << "Please login first" << std::endl;
+        //     return;
+        // }
+
+        std::string frame = createUnsubscribeFrame(subscriptionId-1,reciptId++);
+        connectionHandler.sendFrameAscii(frame, '\0');
     }
 
-    std::string frame = createUnsubscribeFrame(subscriptionId-1,reciptId++);
-    connectionHandler.sendFrameAscii(frame, '\0');
-    }
     void StompProtocol::logout()
     {
         if (!loggedIn) {
@@ -323,11 +325,12 @@
 
         std::string frame=createDisconnectFrame(reciptId++);
 
-    if (connectionHandler.sendFrameAscii(frame, '\0')) {
-        loggedIn = false;
-        username.clear();
+        if (connectionHandler.sendFrameAscii(frame, '\0')) {
+            loggedIn = false;
+            username.clear();
+        }
     }
-    }
+
     void StompProtocol::handleResponse(const std::string& frame,const std::string& responseType)
     {
         if (responseType=="RECEIPT")
