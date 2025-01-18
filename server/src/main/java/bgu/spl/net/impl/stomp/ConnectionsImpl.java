@@ -9,6 +9,8 @@ public class ConnectionsImpl<T> implements Connections<T>{
     private final ConcurrentHashMap<Integer, ConnectionHandler<T>> connectionHandlers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer>> topicSubscribers = new ConcurrentHashMap<>();
 
+    public ConnectionsImpl(){}
+
     @Override
     public boolean send(int connectionId, T msg) {
         ConnectionHandler<T> handler = connectionHandlers.get(connectionId);
@@ -34,6 +36,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
         connectionHandlers.remove(connectionId);
         topicSubscribers.forEach((channel, subscribers) -> subscribers.remove(connectionId));
     }
+
     @Override
     public void subscribe(int connectionId, String channel) {
         topicSubscribers.computeIfAbsent(channel, k -> new ConcurrentLinkedQueue<>()).add(connectionId);
@@ -46,6 +49,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
             subscribers.remove(connectionId);
         }
     }
+    
     @Override
     public int addConnection(ConnectionHandler<T> handler) {
         int connectionId = connectionHandlers.size() + 1; // Generate a unique ID
