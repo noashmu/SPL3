@@ -16,6 +16,8 @@ private:
     std::mutex stateMutex; // For thread safety
     std::thread inputThread, responseThread;
     std::map<std::string, std::map<std::string, std::vector<event>>> eventsByChannelAndUser;
+    std::map<int, std::string> receiptActions; // Maps receipt-id to actions
+
     
     // Helper methods for creating STOMP frames
     std::string createConnectFrame(const std::string& host, const std::string& username, const std::string& password);
@@ -35,6 +37,7 @@ private:
 public:
     StompProtocol(ConnectionHandler&,bool);
     ~StompProtocol();
+    StompProtocol& operator=(const StompProtocol& other);
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
     void report(const std::string& filePath);
     void login(const std::string& host, const std::string& port, const std::string& user, const std::string& password);
@@ -43,6 +46,6 @@ public:
     void logout();
     void handleResponse(const std::string& frame,const std::string& responseType);
     void handleCommand(const std::string& command);
-
+    void processMessageFrame(const std::string& destination, const std::string& body);
     void run(); // Starts threads for input and response handling
 };
