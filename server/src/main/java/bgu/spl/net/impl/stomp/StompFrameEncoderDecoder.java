@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import bgu.spl.net.api.MessageEncoderDecoder;
 
 public class StompFrameEncoderDecoder implements MessageEncoderDecoder<String>  {
-     private final ArrayList<Byte> buffer = new ArrayList<>();
+    private final ArrayList<Byte> buffer = new ArrayList<>();
+
+    public StompFrameEncoderDecoder(){}
 
     @Override
     public String decodeNextByte(byte nextByte) {

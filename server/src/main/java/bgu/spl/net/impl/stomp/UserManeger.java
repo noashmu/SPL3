@@ -2,9 +2,11 @@ package bgu.spl.net.impl.stomp;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UserMeneger {
+public class UserManeger {
     private final ConcurrentHashMap<String, String> users = new ConcurrentHashMap<>(); // username -> password
     private final ConcurrentHashMap<Integer, String> activeUsers = new ConcurrentHashMap<>(); // connectionId -> username
+
+    public UserManeger(){}
 
     // Log in a user
     public synchronized boolean login(String username, String password, int connectionId) {

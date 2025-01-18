@@ -1,18 +1,21 @@
-
+package bgu.spl.net.impl.stomp;
 import java.util.concurrent.ConcurrentHashMap;
 import bgu.spl.net.api.*;
 import bgu.spl.net.srv.Connections;
-import bgu.spl.net.impl.stomp.*;;
 
 public class StompMessagingProtocolImpl implements StompMessagingProtocol<String> {
     private int connectionId;
     private Connections<String> connections;
     private boolean shouldTerminate = false;
-    private UserMeneger userMeneger;  // Reference to UserManager
+    private UserManeger userManeger;  // Reference to UserManager
 
 
     // Store user subscriptions
     private ConcurrentHashMap<String, Integer> subscriptions = new ConcurrentHashMap<>();
+
+    public StompMessagingProtocolImpl(){
+        userManeger = new UserManeger();
+    }
 
     @Override
     public void start(int connectionId, Connections<String> connections) {
@@ -21,7 +24,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     }
 
     @Override
-    public void process(String message) {
+    public String process(String message) {
         String[] lines = message.split("\n", -1);
         String command = lines[0];
 
@@ -44,12 +47,15 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             default:
                 handleError("Unknown command: " + command);
         }
+
+        return null; ///////////////maybe need to change///////////////
     }
 
     @Override
     public boolean shouldTerminate() {
         return shouldTerminate;
     }
+
     private void handleConnect(String[] lines) {
         String username = getHeader(lines, "login");
         String password = getHeader(lines, "passcode");
@@ -59,13 +65,14 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             return;
         }
     
-        boolean loginSuccessful = userMeneger.login(username, password, connectionId);
+        boolean loginSuccessful = userManeger.login(username, password, connectionId);
     
         if (loginSuccessful) {
             connections.send(connectionId, "CONNECTED\nversion:1.2\n\n");
         } else {
             handleError("Login failed: User already logged in or incorrect credentials.");
-        }    }
+        }    
+    }
 
     private void handleSubscribe(String[] lines) {
         String destination = getHeader(lines, "destination");
@@ -114,17 +121,17 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     private void handleDisconnect(String[] lines) {
         String receipt = getHeader(lines, "receipt");
 
-    if (receipt != null) {
-        connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
-    }
+        if (receipt != null) {
+            connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+        }
 
-    String username = ((UserMeneger) connections).getUsernameByConnectionId(connectionId);
-    if (username != null) {
-        userMeneger.logout(username);
-    }
+        String username = ((UserManeger) connections).getUsernameByConnectionId(connectionId);
+        if (username != null) {
+            userManeger.logout(username);
+        }
 
-    connections.disconnect(connectionId);
-    shouldTerminate = true;
+        connections.disconnect(connectionId);
+        shouldTerminate = true;
     }
 
     private void handleError(String errorMessage) {

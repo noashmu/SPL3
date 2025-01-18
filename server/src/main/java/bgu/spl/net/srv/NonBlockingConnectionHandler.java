@@ -49,11 +49,12 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
                     while (buf.hasRemaining()) {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
-                            T response = protocol.process(nextMessage);
-                            if (response != null) {
-                                writeQueue.add(ByteBuffer.wrap(encdec.encode(response)));
-                                reactor.updateInterestedOps(chan, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                            }
+                            protocol.process(nextMessage);
+                            // T response = protocol.process(nextMessage);
+                            // if (response != null) {
+                            //     writeQueue.add(ByteBuffer.wrap(encdec.encode(response)));
+                            //     reactor.updateInterestedOps(chan, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                            // }
                         }
                     }
                 } finally {
@@ -131,4 +132,5 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
             e.printStackTrace();
             close(); // Close the connection if an error occurs
     }
+}
 }
