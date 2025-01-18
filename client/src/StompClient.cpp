@@ -3,6 +3,7 @@
 #include "ConnectionHandler.h"
 #include <StompProtocol.h>
 #include <CommandHandler.h>
+#include <ResponseHandler.h>
 
 
 std::vector<std::string> split_str(std::string command) {
@@ -32,13 +33,12 @@ void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
     }
 }
 
-void inputThreadFunction(){
-
-}
 
 
 int main(int argc, char *argv[]) {
-
+	ConnectionHandler connectionHandler;
+	StompProtocol protocol(connectionHandler,false);
+	CommandHandler commandHandler(protocol);
     // Create threads for user input and server response handling
     std::thread inputThread([&]() {
         std::string command;
@@ -67,34 +67,31 @@ int main(int argc, char *argv[]) {
 				else{
 					hostPort=split_str(tokens[1]);
 					islogin=true;
-					ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-					StompProtocol protocol(connectionHandler,islogin);
-					CommandHandler commandHandler(protocol);
-					commandHandler.handleCommand(command);
-				}
-			}
-			if(islogin){
-				ConnectionHandler connectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-				StompProtocol protocol(connectionHandler,islogin);
-				CommandHandler commandHandler(protocol);
+					connectionHandler = ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+                    protocol = StompProtocol(connectionHandler, true);
+                    commandHandler = CommandHandler(protocol);
+                    islogin = true;
+			 	
+			 }
+			 if(islogin){
 				commandHandler.handleCommand(command);
 				if (command == "logout") {
 					islogin = false;
                 	break;
             	}
 			}
-            
+			}
+        }
+    });
+	ResponseHandler responseHandler(protocol);
+    std::thread responseThread([&]() {
+        std::string frame;
+        while (connectionHandler.getFrameAscii(frame, '\0')) {
+           responseHandler.handleResponse(frame);
         }
     });
 
-    // std::thread responseThread([&]() {
-    //     std::string frame;
-    //     while (connectionHandler.getFrameAscii(frame, '\0')) {
-    //        responseHandler.handleResponse(frame);
-    //     }
-    // });
-
     // Wait for threads to finish
     inputThread.join();
-   	//responseThread.join();
+   	responseThread.join();
 }
