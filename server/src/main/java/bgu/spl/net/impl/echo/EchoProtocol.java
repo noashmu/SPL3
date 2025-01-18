@@ -10,6 +10,9 @@ public class EchoProtocol implements MessagingProtocol<String> {
     private boolean shouldTerminate = false;
 
     @Override
+    public void start(int connectionId, Connections<String> connections){}
+
+    @Override
     public String process(String msg) {
         shouldTerminate = "bye".equals(msg);
         System.out.println("[" + LocalDateTime.now() + "]: " + msg);
