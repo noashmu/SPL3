@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
-#include "ConnectionHandler.h"
-#include <StompProtocol.h>
-#include <CommandHandler.h>
-#include <ResponseHandler.h>
+#include "../include/ConnectionHandler.h"
+#include "../include/StompProtocol.h"
+#include "../include/CommandHandler.h"
+#include "../include/ResponseHandler.h"
 
 
 std::vector<std::string> split_str(const std::string& command) {
