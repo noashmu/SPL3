@@ -18,9 +18,9 @@ std::vector<std::string> split_str(const std::string& command) {
 
 
 void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
-    std::istringstream iss(str); // זרם קלט מתוך המחרוזת
+    std::istringstream iss(str); 
     std::string word;
-    while (iss >> word) { // קרא מילה אחת בכל פעם לפי רווחים
+    while (iss >> word) { 
         result.push_back(word);
     }
 }
