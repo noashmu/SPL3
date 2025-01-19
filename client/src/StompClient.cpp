@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
         std::vector<std::string> hostPort;
 
         while (std::getline(std::cin, command)) {
-		//	std::cout << "Received command: " << command << std::endl;
+			std::cout << "Received command: " << command << std::endl;
             std::istringstream iss(command);
             std::vector<std::string> tokens;
             std::string token;
