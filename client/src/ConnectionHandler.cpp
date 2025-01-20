@@ -10,7 +10,7 @@ using std::string;
 
 ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
                                                                 socket_(io_service_) {}
-
+ConnectionHandler::ConnectionHandler():host_(""), port_(0), io_service_(), socket_(io_service_){}
 ConnectionHandler::~ConnectionHandler() {
 	close();
 }
@@ -134,4 +134,14 @@ void ConnectionHandler::close() {
 
 	}
 
-
+  ConnectionHandler& ConnectionHandler::operator=(const ConnectionHandler& other)
+        {
+			if (this != &other)
+			{
+				// this->host_=other.host_;
+				// this->io_service_=other.io_service_;
+				// this->port_=other.port_;
+				// this->socket_=other.socket_;
+			}
+			return *this;
+        }
