@@ -112,7 +112,7 @@ event::event(const std::string &frame_body): channel_name(""), city(""),
     general_information = general_information_from_string;
 }
 
-void split_str(const std::string& str, char delimiter, std::vector<std::string>& result) {
+    void event::split_str(const std::string& str, char delimiter, std::vector<std::string>& result){
     std::stringstream ss(str);
     std::string item;
     while (std::getline(ss, item, delimiter)) {

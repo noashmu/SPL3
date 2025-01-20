@@ -7,6 +7,10 @@
 #include <vector>
 #include <filesystem>
 #include <fstream>
+#include <iomanip> // Add this for std::put_time
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+
 
 std::string StompProtocol::createConnectFrame(const std::string &host, const std::string &username, const std::string &password)
 {
@@ -161,7 +165,7 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
         return;
     }
 
-    if (!std::filesystem::exists(outputFile))
+    if (!fs::exists(outputFile))
     { // if file is not exist, create it
         std::ofstream file(outputFile);
         if (!file.is_open())
@@ -405,4 +409,7 @@ void StompProtocol::processMessageFrame(const std::string &destination, const st
     }
     eventsByChannelAndUser[reporter][channelName].push_back(newEvent);
 }
+  StompProtocol& StompProtocol::operator=(const StompProtocol& other)
+        {
 
+        }

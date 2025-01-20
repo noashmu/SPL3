@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
-#include "../include/ConnectionHandler.h"
-#include "../include/StompProtocol.h"
-#include "../include/CommandHandler.h"
-#include "../include/ResponseHandler.h"
+#include "ConnectionHandler.h"
+#include <StompProtocol.h>
+#include <CommandHandler.h>
+#include <ResponseHandler.h>
 
 
 std::vector<std::string> split_str(const std::string& command) {
@@ -18,9 +18,9 @@ std::vector<std::string> split_str(const std::string& command) {
 
 
 void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
-    std::istringstream iss(str); 
+    std::istringstream iss(str); // זרם קלט מתוך המחרוזת
     std::string word;
-    while (iss >> word) { 
+    while (iss >> word) { // קרא מילה אחת בכל פעם לפי רווחים
         result.push_back(word);
     }
 }
@@ -28,14 +28,28 @@ void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
 
 
 int main(int argc, char *argv[]) {
+	std::cout << "main: " << std::endl;
+
     ConnectionHandler connectionHandler;
+		std::cout << "connectionhandler: " << std::endl;
+
     StompProtocol protocol(connectionHandler, false);
+	std::cout << "protocol: " << std::endl;
+
     CommandHandler commandHandler(protocol);
+	std::cout << "commandHandler: " << std::endl;
 
     std::thread inputThread([&]() {
+		std::cout << "a: " << std::endl;
         std::string command;
+		std::cout << "b: " << std::endl;
+
         bool islogin = false;
+		std::cout << "c: " << std::endl;
+
         std::vector<std::string> hostPort;
+		std::cout << "d: " << std::endl;
+
 
         while (std::getline(std::cin, command)) {
 			std::cout << "Received command: " << command << std::endl;

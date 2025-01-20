@@ -95,3 +95,12 @@ void CommandHandler::handleCommand(const std::string& command) {
             result.push_back(word);
         }
     }
+        CommandHandler& CommandHandler::operator=(const CommandHandler& other)
+        {
+            if (this!= &other)
+            {
+                this->protocol=other.protocol;
+            }
+            
+            return *this;
+        }
