@@ -39,13 +39,14 @@ public:
     ~StompProtocol();
     StompProtocol& operator=(const StompProtocol& other);
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
-    void report(const std::string& filePath);
-    void login(const std::string& host, const std::string& port, const std::string& user, const std::string& password);
-    void joinChannel(const std::string& channelName);
-    void exitChannel(const std::string& channelName);
-    void logout();
+    std::string report(const std::string& filePath);
+    std::string login(const std::string& host, const std::string& port, const std::string& user, const std::string& password);
+    std::string joinChannel(const std::string& channelName);
+    std::string exitChannel(const std::string& channelName);
+    std::string logout();
     void handleResponse(const std::string& frame,const std::string& responseType);
     void handleCommand(const std::string& command);
     void processMessageFrame(const std::string& destination, const std::string& body);
     void run(); // Starts threads for input and response handling
+    void SetIsLogin(bool);
 };

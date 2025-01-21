@@ -5,7 +5,8 @@ ResponseHandler::ResponseHandler(StompProtocol& protocol) : protocol(protocol) {
 
 void ResponseHandler::handleResponse(const std::string& frame) {
     if (frame.find("CONNECTED") == 0) { // Frame starts with "CONNECTED"
-        std::cout << "login successful" << std::endl;
+        protocol.SetIsLogin(true);
+        std::cout << "Login successful" << std::endl;
     } else if (frame.find("RECEIPT") == 0) { // Frame starts with "RECEIPT"
          protocol.handleResponse(frame,"RECEIPT");
     } else if (frame.find("MESSAGE") == 0) {
