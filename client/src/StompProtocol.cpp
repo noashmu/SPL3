@@ -16,7 +16,7 @@ std::string StompProtocol::createConnectFrame(const std::string &host, const std
 {
     std::string frame = "CONNECT\n";
     frame += "accept-version:1.2\n";
-    frame += "host:" + host + "\n";
+    frame += "host:stomp.cs.bgu.ac.il\n";
     frame += "login:" + username + "\n";
     frame += "passcode:" + password + "\n";
     frame += "\n"; // Empty line indicating the end of the headers
@@ -77,23 +77,27 @@ std::string StompProtocol::createDisconnectFrame(int receipt)
     return frame;
 }
 
-void StompProtocol::report(const std::string &filePath)
+std::string StompProtocol::report(const std::string &filePath)
 {
     // Parse the events file.
     names_and_events eventsData = parseEventsFile(filePath);
     const std::string &channelName = eventsData.channel_name;
     std::vector<event> &events = eventsData.events;
+    std::string frame;
 
     if (events.empty())
     {
-        return;
+       return "";
     }
     // Save and send each event.
     for (const auto &event : events)
     {
         saveEvent(channelName, event);
-        connectionHandler->sendFrameAscii(createSendFrame(channelName, event), '\0');
+        //connectionHandler->sendFrameAscii(createSendFrame(channelName, event), '\0');
+        frame += createSendFrame(channelName,event);
     }
+
+    return frame;
 }
 
 void StompProtocol::saveEvent(const std::string &channelName, const event &event1)
@@ -232,12 +236,12 @@ void StompProtocol::split_str(const std::string &str, char delimiter, std::vecto
     }
 }
 
-void StompProtocol::login(const std::string &host, const std::string &port, const std::string &user, const std::string &password)
+std::string StompProtocol::login(const std::string &host, const std::string &port, const std::string &user, const std::string &password)
 {
     if (loggedIn)
     {
         std::cout << "The client is already logged in, log out before trying again" << std::endl;
-        return;
+        return "";
     }
 
     // Create the CONNECT frame
@@ -245,54 +249,60 @@ void StompProtocol::login(const std::string &host, const std::string &port, cons
     std::cout<<frame<<std::endl;
 
     // Send the CONNECT frame
-    if (!connectionHandler->sendFrameAscii(frame, '\0'))
-    {
-        std::cout << "Could not connect to server" << std::endl;
-        return;
-    }
-    username = user;
-
-    // loggedIn = true;
-}
-void StompProtocol::joinChannel(const std::string &channelName)
-{
-    // if (!loggedIn)
+    // if (!connectionHandler->sendFrameAscii(frame, '\0'))
     // {
-    //     std::cout << "Please login first" << std::endl;
+    //     std::cout << "Could not connect to server" << std::endl;
     //     return;
     // }
+    username = user;
+   // loggedIn = true;
+
+    return frame;
+}
+std::string StompProtocol::joinChannel(const std::string &channelName)
+{
+    if (!loggedIn)
+    {
+        std::cout << "Please login first" << std::endl;
+        return "";
+    }
     receiptActions[reciptId++] = "join:" + channelName; // Track the action
     std::string frame = createSubscribeFrame(channelName, subscriptionId++, reciptId);
-    connectionHandler->sendFrameAscii(frame, '\0');
+    //connectionHandler->sendFrameAscii(frame, '\0');
+    return frame;
 }
 
-void StompProtocol::exitChannel(const std::string &channelName)
+std::string StompProtocol::exitChannel(const std::string &channelName)
 {
-    // if (!loggedIn)
-    // {
-    //     std::cout << "Please login first" << std::endl;
-    //     return;
-    // }
+    if (!loggedIn)
+    {
+        std::cout << "Please login first" << std::endl;
+        return "";
+    }
     receiptActions[reciptId++] = "exit:" + channelName; // Track the action
     std::string frame = createUnsubscribeFrame(subscriptionId - 1, reciptId);
-    connectionHandler->sendFrameAscii(frame, '\0');
+    //connectionHandler->sendFrameAscii(frame, '\0');
+    return frame;
 }
 
-void StompProtocol::logout()
+std::string StompProtocol::logout()
 {
-    // if (!loggedIn)
-    // {
-    //     std::cout << "You are not logged in" << std::endl;
-    //     return;
-    // }
+    if (!loggedIn)
+    {
+        std::cout << "You are not logged in" << std::endl;
+        return "";
+    }
     receiptActions[reciptId++] = "logout"; // Track the logout action
     std::string frame = createDisconnectFrame(reciptId);
 
-    if (connectionHandler->sendFrameAscii(frame, '\0'))
-    {
-        loggedIn = false;
-        username.clear();
-    }
+    // if (connectionHandler->sendFrameAscii(frame, '\0'))
+    // {
+    //     loggedIn = false;
+    //     username.clear();
+    // }
+    this->loggedIn=false;
+
+    return frame;
 }
 
 void StompProtocol::handleResponse(const std::string &frame, const std::string &responseType)
@@ -414,3 +424,8 @@ void StompProtocol::processMessageFrame(const std::string &destination, const st
         {
 
         }
+    void StompProtocol::SetIsLogin(bool islogin)
+    {
+        this->loggedIn=islogin;
+    }
+
