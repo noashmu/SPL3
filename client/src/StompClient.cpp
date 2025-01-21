@@ -156,6 +156,11 @@ int main(int argc, char *argv[]) {
 
                 // קבלת הודעות מהשרת
                 std::string responseFrame;
+                if (!connectionHandler->isConnected())
+                {
+                    std::cout<<"Connection lost or not established."<<std::endl;
+                }
+                
                 if (connectionHandler != nullptr && connectionHandler->getFrameAscii(responseFrame, '\0')) {
                     std::cout << "Received from server: " << responseFrame << std::endl;
                     responseHandler.handleResponse(responseFrame);

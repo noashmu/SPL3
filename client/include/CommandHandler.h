@@ -8,7 +8,7 @@ private:
 public:
     CommandHandler(StompProtocol& protocol);
     CommandHandler(const CommandHandler& other);
-    CommandHandler& operator=(const CommandHandler& other);
+ //   CommandHandler& operator=(const CommandHandler& other);
     std::string handleCommand(const std::string& command);
     std::vector<std::string> split_str(std::string command);
     void splitBySpaces(const std::string& str, std::vector<std::string>& result);

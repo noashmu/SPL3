@@ -10,11 +10,11 @@ private:
     ConnectionHandler* connectionHandler;
     bool loggedIn;
     std::string username;
-    int reciptId=0;
-    int subscriptionId=0;
+    int reciptId;
+    int subscriptionId;
    //std::unordered_map<std::string, std::vector<Event>> emergencyChannels;
-    std::mutex stateMutex; // For thread safety
-    std::thread inputThread, responseThread;
+  //  std::mutex stateMutex; // For thread safety
+    //std::thread inputThread, responseThread;
     std::map<std::string, std::map<std::string, std::vector<event>>> eventsByChannelAndUser;
     std::map<int, std::string> receiptActions; // Maps receipt-id to actions
 
@@ -37,7 +37,9 @@ private:
 public:
     StompProtocol(ConnectionHandler*,bool);
     ~StompProtocol();
-    StompProtocol& operator=(const StompProtocol& other);
+  //  StompProtocol& operator=(const StompProtocol& other);
+    StompProtocol(const StompProtocol&) = delete;
+    StompProtocol& operator=(const StompProtocol&) = delete;
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);
     std::string report(const std::string& filePath);
     std::string login(const std::string& host, const std::string& port, const std::string& user, const std::string& password);

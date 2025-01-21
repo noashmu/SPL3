@@ -3,14 +3,14 @@
 #include <sstream>
 #include <vector>
 
-CommandHandler::CommandHandler(StompProtocol& protocol) : protocol(protocol) {}
+CommandHandler::CommandHandler(StompProtocol& protocol):protocol(protocol) {}
 
 
 std::string CommandHandler::handleCommand(const std::string& command) {
     std::istringstream iss(command);
     std::vector<std::string> tokens;
     std::string token;
-    std::string frame = "";
+    std::string frame="";
 
     // Split the command into tokens
     while (iss >> token) {
@@ -19,7 +19,7 @@ std::string CommandHandler::handleCommand(const std::string& command) {
 
     if (tokens.empty()) {
         std::cerr << "Error: Empty command." << std::endl;
-      //  return;
+        return "";
     }
 
     const std::string& action = tokens[0];
@@ -28,10 +28,8 @@ std::string CommandHandler::handleCommand(const std::string& command) {
     if (action == "login") {
 			std::vector<std::string> commandDetails;
 			splitBySpaces(command,commandDetails);
-            
             std::vector<std::string> hostPort=split_str(commandDetails[1]);
-            std::cout<<hostPort[0]<< "  "<<hostPort[1]<<std::endl;
-            frame = protocol.login(hostPort[0],hostPort[1], tokens[2], tokens[3]);
+            frame=protocol.login(hostPort[0],hostPort[1], tokens[2], tokens[3]);
     } 
     else if (action == "join") {
         if (tokens.size() != 2) {
@@ -65,13 +63,12 @@ std::string CommandHandler::handleCommand(const std::string& command) {
         if (tokens.size() != 1) {
                 std::cout<< "logout command needs 0 args" <<std::endl;
         } else {
-            frame = protocol.logout();
+           frame= protocol.logout();
         }
     } 
     else {
         std::cout << "Unknown command: " << action << std::endl;
     }
-
     return frame;
 }
 
@@ -92,12 +89,12 @@ std::string CommandHandler::handleCommand(const std::string& command) {
             result.push_back(word);
         }
     }
-        CommandHandler& CommandHandler::operator=(const CommandHandler& other)
-        {
-            if (this!= &other)
-            {
-                this->protocol=other.protocol;
-            }
+        // CommandHandler& CommandHandler::operator=(const CommandHandler& other)
+        // {
+        //     if (this!= &other)
+        //     {
+        //         this->protocol=other.protocol;
+        //     }
             
-            return *this;
-        }
+        //     return *this;
+        // }

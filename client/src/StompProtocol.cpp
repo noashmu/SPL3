@@ -204,8 +204,9 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
     }
 }
 
-StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username("")
+StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username(""),reciptId(1),subscriptionId(1),eventsByChannelAndUser(),receiptActions()
 { //: loggedIn(false), username(""), inputThread(), responseThread()
+    
 }
 
 StompProtocol::~StompProtocol()
@@ -266,8 +267,12 @@ std::string StompProtocol::joinChannel(const std::string &channelName)
         std::cout << "Please login first" << std::endl;
         return "";
     }
-    receiptActions[reciptId++] = "join:" + channelName; // Track the action
-    std::string frame = createSubscribeFrame(channelName, subscriptionId++, reciptId);
+    receiptActions[reciptId] = "join:" + channelName; // Track the action
+
+    std::string frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
+    std::cout << "Generated Frame: " << frame << std::endl;
+    reciptId++;
+    subscriptionId++;
     //connectionHandler->sendFrameAscii(frame, '\0');
     return frame;
 }
@@ -420,10 +425,10 @@ void StompProtocol::processMessageFrame(const std::string &destination, const st
     }
     eventsByChannelAndUser[reporter][channelName].push_back(newEvent);
 }
-  StompProtocol& StompProtocol::operator=(const StompProtocol& other)
-        {
+//   StompProtocol& StompProtocol::operator=(const StompProtocol& other)
+//         {
 
-        }
+//         }
     void StompProtocol::SetIsLogin(bool islogin)
     {
         this->loggedIn=islogin;
