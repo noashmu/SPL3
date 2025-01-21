@@ -92,7 +92,7 @@ void StompProtocol::report(const std::string &filePath)
     for (const auto &event : events)
     {
         saveEvent(channelName, event);
-        connectionHandler.sendFrameAscii(createSendFrame(channelName, event), '\0');
+        connectionHandler->sendFrameAscii(createSendFrame(channelName, event), '\0');
     }
 }
 
@@ -200,7 +200,7 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
     }
 }
 
-StompProtocol::StompProtocol(ConnectionHandler &c, bool islogin) : connectionHandler(c), loggedIn(islogin), username("")
+StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username("")
 { //: loggedIn(false), username(""), inputThread(), responseThread()
 }
 
@@ -242,9 +242,10 @@ void StompProtocol::login(const std::string &host, const std::string &port, cons
 
     // Create the CONNECT frame
     std::string frame = createConnectFrame(host, user, password);
+    std::cout<<frame<<std::endl;
 
     // Send the CONNECT frame
-    if (!connectionHandler.sendFrameAscii(frame, '\0'))
+    if (!connectionHandler->sendFrameAscii(frame, '\0'))
     {
         std::cout << "Could not connect to server" << std::endl;
         return;
@@ -262,7 +263,7 @@ void StompProtocol::joinChannel(const std::string &channelName)
     // }
     receiptActions[reciptId++] = "join:" + channelName; // Track the action
     std::string frame = createSubscribeFrame(channelName, subscriptionId++, reciptId);
-    connectionHandler.sendFrameAscii(frame, '\0');
+    connectionHandler->sendFrameAscii(frame, '\0');
 }
 
 void StompProtocol::exitChannel(const std::string &channelName)
@@ -274,7 +275,7 @@ void StompProtocol::exitChannel(const std::string &channelName)
     // }
     receiptActions[reciptId++] = "exit:" + channelName; // Track the action
     std::string frame = createUnsubscribeFrame(subscriptionId - 1, reciptId);
-    connectionHandler.sendFrameAscii(frame, '\0');
+    connectionHandler->sendFrameAscii(frame, '\0');
 }
 
 void StompProtocol::logout()
@@ -287,7 +288,7 @@ void StompProtocol::logout()
     receiptActions[reciptId++] = "logout"; // Track the logout action
     std::string frame = createDisconnectFrame(reciptId);
 
-    if (connectionHandler.sendFrameAscii(frame, '\0'))
+    if (connectionHandler->sendFrameAscii(frame, '\0'))
     {
         loggedIn = false;
         username.clear();
@@ -315,7 +316,7 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 // Handle the specific action
                 if (action == "logout")
                 {
-                    connectionHandler.close();
+                    connectionHandler->close();
                 }
                 else if (action.rfind("join:", 0) == 0)
                 {
@@ -364,7 +365,7 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 std::cerr << "Error details: " << body << std::endl;
             }
         }
-        connectionHandler.close();
+        connectionHandler->close();
     }
 }
 

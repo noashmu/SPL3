@@ -7,7 +7,7 @@
 class StompProtocol
 {
 private:
-    ConnectionHandler& connectionHandler;
+    ConnectionHandler* connectionHandler;
     bool loggedIn;
     std::string username;
     int reciptId=0;
@@ -35,7 +35,7 @@ private:
 
 
 public:
-    StompProtocol(ConnectionHandler&,bool);
+    StompProtocol(ConnectionHandler*,bool);
     ~StompProtocol();
     StompProtocol& operator=(const StompProtocol& other);
     void saveSummaryToFile(const std::string& channel, const std::string& user, const std::string& outputFile);

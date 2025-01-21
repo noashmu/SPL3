@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
 #include "ConnectionHandler.h"
-#include <StompProtocol.h>
-#include <CommandHandler.h>
-#include <ResponseHandler.h>
+#include "StompProtocol.h"
+#include "CommandHandler.h"
+#include "ResponseHandler.h"
 
 
 std::vector<std::string> split_str(const std::string& command) {
@@ -30,26 +30,14 @@ void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
 int main(int argc, char *argv[]) {
 	std::cout << "main: " << std::endl;
 
-    ConnectionHandler connectionHandler;
-		std::cout << "connectionhandler: " << std::endl;
-
+    ConnectionHandler* connectionHandler=new ConnectionHandler();
     StompProtocol protocol(connectionHandler, false);
-	std::cout << "protocol: " << std::endl;
-
     CommandHandler commandHandler(protocol);
-	std::cout << "commandHandler: " << std::endl;
 
     std::thread inputThread([&]() {
-		std::cout << "a: " << std::endl;
         std::string command;
-		std::cout << "b: " << std::endl;
-
         bool islogin = false;
-		std::cout << "c: " << std::endl;
-
         std::vector<std::string> hostPort;
-		std::cout << "d: " << std::endl;
-
 
         while (std::getline(std::cin, command)) {
 			std::cout << "Received command: " << command << std::endl;
@@ -72,39 +60,75 @@ int main(int argc, char *argv[]) {
                     continue;
                 }
 
-                connectionHandler = ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-                if (!connectionHandler.connect()) {
-                    std::cout << "Could not connect to server" << std::endl;
-                    continue;
+
+                // בדיקה אם יש צורך בחיבור חדש
+                if (!connectionHandler->isConnected() || 
+                    connectionHandler->getHost() != hostPort[0] || 
+                    connectionHandler->getPort() != static_cast<short>(std::stoi(hostPort[1]))) {
+                    
+                    // אם הכתובת או הפורט השתנו - נאתחל את החיבור מחדש
+                    connectionHandler->close();
+                    delete connectionHandler;
+
+                    connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+                    if (!connectionHandler->connect()) {
+                        std::cout << "Could not connect to server" << std::endl;
+                        continue;
+                    }
+
+                    protocol = StompProtocol(connectionHandler, true);
+                    commandHandler = CommandHandler(protocol);
+                    islogin = true;
                 }
 
-                protocol = StompProtocol(connectionHandler, true);
-                commandHandler = CommandHandler(protocol);
 
-                protocol.login(hostPort[0], hostPort[1], tokens[2], tokens[3]);
-                islogin = true;
-            } else if (!islogin) {
+                
+                // connectionHandler->close();
+                // delete connectionHandler;
+
+                // connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+                // if (!connectionHandler->connect()) {
+                //     std::cout << "Could not connect to server" << std::endl;
+                //     continue;
+                // }
+
+                // protocol = StompProtocol(connectionHandler, true);
+                // commandHandler = CommandHandler(protocol);
+
+                // protocol.login(hostPort[0], hostPort[1], tokens[2], tokens[3]);
+                //islogin = true;
+            } 
+            else if (!islogin) {
                 std::cout << "please login first" << std::endl;
-            } else {
+            } 
+            else {
                 commandHandler.handleCommand(command);
                 if (command == "logout") {
                     islogin = false;
                     break;
                 }
             }
+            ResponseHandler responseHandler(protocol);
+            std::string frame;
+            connectionHandler->getFrameAscii(frame, '\0');
+            responseHandler.handleResponse(frame);
         }
     });
 
     ResponseHandler responseHandler(protocol);
     std::thread responseThread([&]() {
         std::string frame;
-        while (connectionHandler.getFrameAscii(frame, '\0')) {
+        while (connectionHandler->getFrameAscii(frame, '\0')) {
+            std::cout<<"fdkcnkv"<<std::endl;
             responseHandler.handleResponse(frame);
         }
     });
 
     inputThread.join();
     responseThread.join();
+
+    // connectionHandler->close();
+    // delete connectionHandler;
 
     return 0;
 }
