@@ -9,8 +9,8 @@ using std::endl;
 using std::string;
 
 ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),
-                                                                socket_(io_service_) {}
-ConnectionHandler::ConnectionHandler():host_(""), port_(0), io_service_(), socket_(io_service_){}
+                                                                socket_(io_service_),isConnect(false) {}
+ConnectionHandler::ConnectionHandler():host_(""), port_(0), io_service_(), socket_(io_service_),isConnect(false){}
 ConnectionHandler::~ConnectionHandler() {
 	close();
 }
@@ -21,14 +21,18 @@ bool ConnectionHandler::connect() {
 	try {
 		tcp::endpoint endpoint(boost::asio::ip::address::from_string(host_), port_); // the server endpoint
 		boost::system::error_code error;
-		socket_.connect(endpoint, error);
-		if (error)
+		socket_.connect(endpoint, error);		
+		if (error){
+			isConnect = false;
 			throw boost::system::system_error(error);
+		}
 	}
 	catch (std::exception &e) {
 		std::cerr << "Connection failed (Error: " << e.what() << ')' << std::endl;
+		isConnect = false;
 		return false;
 	}
+	isConnect = true;
 	return true;
 }
 
@@ -145,3 +149,16 @@ void ConnectionHandler::close() {
 			}
 			return *this;
         }
+
+	std::string ConnectionHandler::getHost(){
+		return this->host_;
+	}
+
+	short ConnectionHandler::getPort(){
+		return this->port_;
+	}
+
+	bool ConnectionHandler::isConnected(){
+		return isConnect;
+	}
+
