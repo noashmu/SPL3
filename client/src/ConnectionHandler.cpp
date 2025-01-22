@@ -55,6 +55,17 @@ bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
 bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
 	int tmp = 0;
 	boost::system::error_code error;
+	std::cout << "Socket " << socket_.native_handle() << std::endl;	
+
+	  if (!this->isConnected())
+                {
+                    std::cout<<"Connection lost or not established."<<std::endl;
+                }
+				if (!socket_.is_open()) {
+    std::cout << "Socket is not open." << std::endl;
+    return false;
+}
+
 	try {
 		while (!error && bytesToWrite > tmp) {
 			tmp += socket_.write_some(boost::asio::buffer(bytes + tmp, bytesToWrite - tmp), error);
@@ -67,6 +78,8 @@ bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
 	}
 	return true;
 }
+
+
 
 bool ConnectionHandler::getLine(std::string &line) {
 	return getFrameAscii(line, '\n');
@@ -97,6 +110,14 @@ bool ConnectionHandler::getFrameAscii(std::string &frame, char delimiter) {
 }
 
 bool ConnectionHandler::sendFrameAscii(const std::string &frame, char delimiter) {
+	if (!this->isConnected())
+	{
+		std::cout<<"disconnected from send frame ascii"<<std::endl;
+	}
+	if (this==nullptr)
+	{
+		std::cout<<"nullptr from send frame ascii"<<std::endl;
+	}
 	bool result = sendBytes(frame.c_str(), frame.length());
 	if (!result) return false;
 	return sendBytes(&delimiter, 1);
