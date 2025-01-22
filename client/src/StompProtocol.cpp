@@ -270,7 +270,7 @@ std::string StompProtocol::joinChannel(const std::string &channelName)
     receiptActions[reciptId] = "join:" + channelName; // Track the action
 
     std::string frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
-    std::cout << "Generated Frame: " << frame << std::endl;
+    std::cout << frame << std::endl;
     reciptId++;
     subscriptionId++;
     //connectionHandler->sendFrameAscii(frame, '\0');

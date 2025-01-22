@@ -148,6 +148,7 @@ int main(int argc, char *argv[]) {
                 lock.unlock();
 
                 // שליחת הודעה לשרת
+                std::cout << "Frame being sent:\n" << frame << std::endl;
                 if (connectionHandler != nullptr && !connectionHandler->sendFrameAscii(frame,'\0')){
                     std::cout << "Error sending message: " << message << std::endl;
                     shouldTerminate = true;
