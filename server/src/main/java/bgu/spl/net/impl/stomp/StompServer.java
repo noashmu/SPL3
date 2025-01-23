@@ -34,7 +34,7 @@ public class StompServer {
                 Server.reactor(
                         Runtime.getRuntime().availableProcessors(),
                         port,
-                        StompMessagingProtocolImpl::new, 
+                        () -> new StompMessagingProtocolImpl(), 
                         StompFrameEncoderDecoder::new 
                 ).serve();
                 break;
