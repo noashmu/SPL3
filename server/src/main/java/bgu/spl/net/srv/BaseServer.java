@@ -16,7 +16,7 @@ public abstract class BaseServer<T> implements Server<T> {
     private final Supplier<MessagingProtocol<T>> protocolFactory;
     private final Supplier<MessageEncoderDecoder<T>> encdecFactory;
     private ServerSocket sock;
-    private AtomicInteger count;
+    public static AtomicInteger count;
 
     public BaseServer(
             int port,
@@ -43,16 +43,17 @@ public abstract class BaseServer<T> implements Server<T> {
                 System.out.println("entered while");
 
                 Socket clientSock = serverSock.accept();
+                this.count.incrementAndGet();
+                protocolFactory.get().start(count.get(), ConnectionsImpl.getInstance());
+
 
                 BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(
                         clientSock,
                         encdecFactory.get(),
                         protocolFactory.get());
                         
-                this.count.incrementAndGet();
-                ConnectionsImpl.getInstance().addConnection((ConnectionHandler<T>)handler,count.get());
-                protocolFactory.get().start(count.get(), ConnectionsImpl.getInstance());
-                execute(handler);
+                    ConnectionsImpl.getInstance().addConnection((ConnectionHandler<Object>)handler,count.get());
+                    execute(handler);
             }
 
         } catch (IOException ex) {

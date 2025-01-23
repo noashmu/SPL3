@@ -9,18 +9,8 @@
             "name": "StompServer",
             "request": "launch",
             "mainClass": "bgu.spl.net.impl.stomp.StompServer",
-            "projectName": "server"
-        },
-        {
-            "type": "java",
-            "name": "StompServer",
-            "request": "launch",
-            "mainClass": "bgu.spl.net.impl.stomp.StompServerz",
             "projectName": "server",
-            "args": [
-                "7777",
-                "tpc"
-            ]
+            "args": ["7777","tpc"]
         },
         {
             "type": "java",

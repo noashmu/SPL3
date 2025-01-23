@@ -1,5 +1,6 @@
 package bgu.spl.net.impl.stomp;
 
+import bgu.spl.net.srv.BaseServer;
 import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,9 +25,10 @@ public class ConnectionsImpl<T> implements Connections<T>{
 
     @Override
     public boolean send(int connectionId, T msg) {
-        System.out.println("entered send");
+        System.out.println(connectionId);
         ConnectionHandler<T> handler = connectionHandlers.get(connectionId);
         if (handler != null) {
+            System.out.println("NULLL");
             handler.send(msg);
             return true;
         }
@@ -70,7 +72,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
     }
     public void addConnection(ConnectionHandler<T> handler,int connectionId)
     {
-        connectionHandlers.put(connectionId, handler);
+        connectionHandlers.put(BaseServer.count.get(), handler);
 
     }
 
