@@ -4,15 +4,27 @@ import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T>{
     private final ConcurrentHashMap<Integer, ConnectionHandler<T>> connectionHandlers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer>> topicSubscribers = new ConcurrentHashMap<>();
+    private static ConnectionsImpl<?> INSTANCE;
+    private ConnectionsImpl(){
 
-    public ConnectionsImpl(){}
+    }
+    public static synchronized <T> ConnectionsImpl<T> getInstance()
+    {
+        if (INSTANCE==null) {
+            INSTANCE= new ConnectionsImpl<>();
+        }
+        return (ConnectionsImpl<T>)INSTANCE;
+    }
 
     @Override
     public boolean send(int connectionId, T msg) {
+        System.out.println("entered send");
         ConnectionHandler<T> handler = connectionHandlers.get(connectionId);
         if (handler != null) {
             handler.send(msg);
@@ -56,4 +68,10 @@ public class ConnectionsImpl<T> implements Connections<T>{
         connectionHandlers.put(connectionId, handler);
         return connectionId;
     }
+    public void addConnection(ConnectionHandler<T> handler,int connectionId)
+    {
+        connectionHandlers.put(connectionId, handler);
+
+    }
+
 }

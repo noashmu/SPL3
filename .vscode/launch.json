@@ -8,8 +8,19 @@
             "type": "java",
             "name": "StompServer",
             "request": "launch",
-            "mainClass": "bgu.spl.net.impl.stomp.StompServerz",
+            "mainClass": "bgu.spl.net.impl.stomp.StompServer",
             "projectName": "server"
+        },
+        {
+            "type": "java",
+            "name": "StompServer",
+            "request": "launch",
+            "mainClass": "bgu.spl.net.impl.stomp.StompServerz",
+            "projectName": "server",
+            "args": [
+                "7777",
+                "tpc"
+            ]
         },
         {
             "type": "java",
@@ -45,30 +56,33 @@
             "preLaunchTask": "make StompWCIClient"
         },
         {
-                "name": "(gdb) Launch Stomp Client",
-                "type": "cppdbg",
-                "request": "launch",
-                "program": "${workspaceFolder}/client/bin/StompClient",
-                "args": ["127.0.0.1", "7777"],
-                "stopAtEntry": false,
-                "cwd": "${fileDirname}",
-                "environment": [],
-                "externalConsole": false,
-                "MIMode": "gdb",
-                "setupCommands": [
-                  {
+            "name": "(gdb) Launch Stomp Client",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/client/bin/StompClient",
+            "args": [
+                "127.0.0.1",
+                "7777"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
-                  },
-                  {
+                },
+                {
                     "description": "Set Disassembly Flavor to Intel",
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
-                  }
-                ],
-                "preLaunchTask": "make StompClient"
-              },
+                }
+            ],
+            "preLaunchTask": "make StompClient"
+        },
         {
             "type": "java",
             "name": "Launch Current File",

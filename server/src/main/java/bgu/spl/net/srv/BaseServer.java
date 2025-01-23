@@ -2,9 +2,12 @@ package bgu.spl.net.srv;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.api.MessagingProtocol;
+import bgu.spl.net.impl.stomp.ConnectionsImpl;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public abstract class BaseServer<T> implements Server<T> {
@@ -13,6 +16,7 @@ public abstract class BaseServer<T> implements Server<T> {
     private final Supplier<MessagingProtocol<T>> protocolFactory;
     private final Supplier<MessageEncoderDecoder<T>> encdecFactory;
     private ServerSocket sock;
+    private AtomicInteger count;
 
     public BaseServer(
             int port,
@@ -23,7 +27,9 @@ public abstract class BaseServer<T> implements Server<T> {
         this.protocolFactory = protocolFactory;
         this.encdecFactory = encdecFactory;
 		this.sock = null;
-    }
+        this.count=new AtomicInteger(0);
+     }
+    
 
     @Override
     public void serve() {
@@ -34,6 +40,7 @@ public abstract class BaseServer<T> implements Server<T> {
             this.sock = serverSock; //just to be able to close
 
             while (!Thread.currentThread().isInterrupted()) {
+                System.out.println("entered while");
 
                 Socket clientSock = serverSock.accept();
 
@@ -41,9 +48,13 @@ public abstract class BaseServer<T> implements Server<T> {
                         clientSock,
                         encdecFactory.get(),
                         protocolFactory.get());
-
+                        
+                this.count.incrementAndGet();
+                ConnectionsImpl.getInstance().addConnection((ConnectionHandler<T>)handler,count.get());
+                protocolFactory.get().start(count.get(), ConnectionsImpl.getInstance());
                 execute(handler);
             }
+
         } catch (IOException ex) {
         }
 

@@ -1,11 +1,12 @@
 package bgu.spl.net.impl.stomp;
 import java.util.concurrent.ConcurrentHashMap;
 import bgu.spl.net.api.*;
+import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 
 public class StompMessagingProtocolImpl implements StompMessagingProtocol<String> {
-    private int connectionId;
-    private Connections<String> connections;
+    private int connectionId=0;
+    private Connections<String> connections=ConnectionsImpl.getInstance();
     private boolean shouldTerminate = false;
     private UserManeger userManeger;  // Reference to UserManager
 
@@ -15,6 +16,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     public StompMessagingProtocolImpl(){
         userManeger = new UserManeger();
+
     }
 
     @Override
@@ -57,6 +59,8 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     }
 
     private void handleConnect(String[] lines) {
+        System.out.println("enter handle connect");
+
         String username = getHeader(lines, "login");
         String password = getHeader(lines, "passcode");
     
@@ -68,6 +72,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         boolean loginSuccessful = userManeger.login(username, password, connectionId);
     
         if (loginSuccessful) {
+            System.out.println("Connected");
             connections.send(connectionId, "CONNECTED\nversion:1.2\n\n");
         } else {
             handleError("Login failed: User already logged in or incorrect credentials.");
@@ -162,5 +167,9 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         }
         return body.toString().trim();
     }
+   public Connections<String> getConnections()
+   {
+    return this.connections;
+   }
 
 }
