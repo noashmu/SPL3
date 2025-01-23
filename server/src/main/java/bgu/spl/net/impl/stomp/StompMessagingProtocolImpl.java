@@ -1,11 +1,12 @@
 package bgu.spl.net.impl.stomp;
 import java.util.concurrent.ConcurrentHashMap;
 import bgu.spl.net.api.*;
+import bgu.spl.net.srv.BaseServer;
 import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 
 public class StompMessagingProtocolImpl implements StompMessagingProtocol<String> {
-    private int connectionId=0;
+    //private int connectionId;
     private Connections<String> connections=ConnectionsImpl.getInstance();
     private boolean shouldTerminate = false;
     private UserManeger userManeger;  // Reference to UserManager
@@ -21,7 +22,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     @Override
     public void start(int connectionId, Connections<String> connections) {
-        this.connectionId = connectionId;
+        //this.connectionId = connectionId;
         this.connections = connections;
     }
 
@@ -69,11 +70,11 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             return;
         }
     
-        boolean loginSuccessful = userManeger.login(username, password, connectionId);
+        boolean loginSuccessful = userManeger.login(username, password, BaseServer.count.get());
     
         if (loginSuccessful) {
             System.out.println("Connected");
-            connections.send(connectionId, "CONNECTED\nversion:1.2\n\n");
+            connections.send(BaseServer.count.get(), "CONNECTED\nversion:1.2\n\n");
         } else {
             handleError("Login failed: User already logged in or incorrect credentials.");
         }    
@@ -86,10 +87,10 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     
         if (destination != null && subscriptionId != null) {
             subscriptions.put(destination, Integer.parseInt(subscriptionId));
-            connections.subscribe(connectionId, destination);
+            connections.subscribe( BaseServer.count.get(), destination);
     
             if (receipt != null) {
-                connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+                connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
         } else {
             handleError("Invalid SUBSCRIBE frame: Missing headers.");
@@ -102,10 +103,10 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     
         if (subscriptionId != null) {
             subscriptions.values().remove(Integer.parseInt(subscriptionId));
-            connections.unsubscribe(connectionId, subscriptionId);
+            connections.unsubscribe( BaseServer.count.get(), subscriptionId);
     
             if (receipt != null) {
-                connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+                connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
         } else {
             handleError("Invalid UNSUBSCRIBE frame: Missing 'id' header.");
@@ -127,20 +128,20 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         String receipt = getHeader(lines, "receipt");
 
         if (receipt != null) {
-            connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+            connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
         }
 
-        String username = ((UserManeger) connections).getUsernameByConnectionId(connectionId);
+        String username = ((UserManeger) connections).getUsernameByConnectionId( BaseServer.count.get());
         if (username != null) {
             userManeger.logout(username);
         }
 
-        connections.disconnect(connectionId);
+        connections.disconnect( BaseServer.count.get());
         shouldTerminate = true;
     }
 
     private void handleError(String errorMessage) {
-        connections.send(connectionId, "ERROR\nmessage:" + errorMessage + "\n\n");
+        connections.send( BaseServer.count.get(), "ERROR\nmessage:" + errorMessage + "\n\n");
         shouldTerminate = true;
     }
 

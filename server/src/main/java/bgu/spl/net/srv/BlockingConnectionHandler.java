@@ -59,6 +59,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
     @Override
     public void send(T msg) {
         try {
+            System.out.println("enterde send blocking connection handler");
             byte[] encodedMessage = encdec.encode(msg);
             synchronized (out) { // Ensure thread safety
                 out.write(encodedMessage);
