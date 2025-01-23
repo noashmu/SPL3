@@ -18,7 +18,6 @@ public:
 	ConnectionHandler();
 	ConnectionHandler(std::string host, short port);
 	ConnectionHandler(const ConnectionHandler& other);
-	ConnectionHandler& operator=(const ConnectionHandler& other);
 	std::string getHost();
 	short getPort();
 	bool isConnected();

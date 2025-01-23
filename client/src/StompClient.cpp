@@ -33,7 +33,7 @@ void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
 
 int main(int argc, char *argv[]) {
 
-    ConnectionHandler* connectionHandler=new ConnectionHandler();
+    ConnectionHandler* connectionHandler=nullptr;
 
     std::queue<std::string> messageQueue;
     std::mutex queueMutex;
@@ -48,7 +48,6 @@ int main(int argc, char *argv[]) {
 
         while (std::getline(std::cin, command)) {
             std::unique_lock<std::mutex> lock(queueMutex);
-
             std::istringstream iss(command);
             std::vector<std::string> tokens;
             std::string token;
@@ -71,48 +70,29 @@ int main(int argc, char *argv[]) {
 
 
                 // בדיקה אם יש צורך בחיבור חדש
-                if (!connectionHandler->isConnected()||
-                   connectionHandler->getHost() != hostPort[0] || 
-                   connectionHandler->getPort() != static_cast<short>(std::stoi(hostPort[1]))) {
+                if (connectionHandler==nullptr){
+               //    connectionHandler->getHost() != hostPort[0] || 
+               //    connectionHandler->getPort() != static_cast<short>(std::stoi(hostPort[1]))) {
                     
                     // אם הכתובת או הפורט השתנו - נאתחל את החיבור מחדש
-                    connectionHandler->close();
-                    delete connectionHandler;
-                    std::cout << hostPort[0]<< "  main "<<hostPort[1]<< std::endl;
-                  connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+                 //   connectionHandler->close();
+                  //  delete connectionHandler;
+                    std::cout << hostPort[0]<< "  start "<<hostPort[1]<< std::endl;
+                    connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
                     if (!connectionHandler->connect()) {
                         std::cout << "Could not connect to server" << std::endl;
                         continue;
                     }
 
-                    //protocol = StompProtocol(connectionHandler, true);
-                    //commandHandler = CommandHandler(protocol);
-                    //protocol.login(hostPort[0], hostPort[1], tokens[2], tokens[3]);
-                    //islogin = true;
+             
                 }
 
                 messageQueue.push(command);
                 queueCV.notify_all();
 
-                
-                // connectionHandler->close();
-                // delete connectionHandler;
-
-                // connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-                // if (!connectionHandler->connect()) {
-                //     std::cout << "Could not connect to server" << std::endl;
-                //     continue;
-                // }
-
-                // protocol = StompProtocol(connectionHandler, true);
-                // commandHandler = CommandHandler(protocol);
-
-                // protocol.login(hostPort[0], hostPort[1], tokens[2], tokens[3]);
-                //islogin = true;
+    
             } 
-            // else if (!islogin) {
-            //     std::cout << "please login first" << std::endl;
-            // } 
+       
             else {
                 messageQueue.push(command);
                 queueCV.notify_all();
@@ -120,13 +100,9 @@ int main(int argc, char *argv[]) {
                 if (command == "logout") {
                     islogin = false;
                     shouldTerminate = true;
-                    break;
                 }
             }
-            // ResponseHandler responseHandler(protocol);
-            // std::string frame;
-            // connectionHandler->getFrameAscii(frame, '\0');
-            // responseHandler.handleResponse(frame);
+
         }
     });
 
@@ -149,7 +125,7 @@ int main(int argc, char *argv[]) {
 
                 // שליחת הודעה לשרת
                 std::cout << "Frame being sent:\n" << frame << std::endl;
-                if (connectionHandler != nullptr && !connectionHandler->sendFrameAscii(frame,'\0')){
+                if (!connectionHandler->sendFrameAscii(frame,'\0')){
                     std::cout << "Error sending message: " << message << std::endl;
                     shouldTerminate = true;
                     break;
@@ -171,12 +147,6 @@ int main(int argc, char *argv[]) {
             }
         }
 
-
-        // std::string frame;
-        // while (connectionHandler->getFrameAscii(frame, '\0')) {
-        //     std::cout<<"fdkcnkv"<<std::endl;
-        //     responseHandler.handleResponse(frame);
-        // }
     });
 
     inputThread.join();

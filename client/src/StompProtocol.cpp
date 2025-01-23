@@ -20,7 +20,7 @@ std::string StompProtocol::createConnectFrame(const std::string &host, const std
     frame += "login:" + username + "\n";
     frame += "passcode:" + password + "\n";
     frame += "\n"; // Empty line indicating the end of the headers
-    frame += '\0'; // Null character to terminate the STOMP frame
+    // frame += '\0'; // Null character to terminate the STOMP frame
 
     return frame;
 }
@@ -31,8 +31,8 @@ std::string StompProtocol::createSubscribeFrame(const std::string &channel, int 
     frame += "destination:" + channel + "\n";
     frame += "id:" + std::to_string(id) + "\n";
     frame += "receipt:" + std::to_string(receipt) + "\n";
-    frame += "\n"; // Empty line indicating the end of the headers
-    frame += '\0'; // Null character to terminate the STOMP frame
+    frame += "\n"; // Blank line after headers
+ //   frame += '\0'; // Null character to terminate the frame
 
     return frame;
 }
@@ -43,7 +43,7 @@ std::string StompProtocol::createUnsubscribeFrame(int id, int receipt)
     frame += "id:" + std::to_string(id) + "\n";
     frame += "receipt:" + std::to_string(receipt) + "\n";
     frame += "\n"; // Empty line indicating the end of the headers
-    frame += '\0'; // Null character to terminate the STOMP frame
+ //   frame += '\0'; // Null character to terminate the STOMP frame
 
     return frame;
 }
@@ -64,7 +64,7 @@ std::string StompProtocol::createSendFrame(const std::string &destination, event
     }
     frame += "description:\n" + event.get_description() + "\n";
     frame += "\n"; // Empty line indicating the end of the headers
-    frame += '\0'; // Null character to terminate the STOMP frame
+ //   frame += '\0'; // Null character to terminate the STOMP frame
 
     return frame;
 }
@@ -72,7 +72,7 @@ std::string StompProtocol::createSendFrame(const std::string &destination, event
 std::string StompProtocol::createDisconnectFrame(int receipt)
 {
     std::string frame = "DISCONNECT\n";
-    frame += "receipt:" + std::to_string(receipt) + "\n";
+    frame += "receipt:" + std::to_string(receipt) + "\n" +"\n";
 
     return frame;
 }
@@ -206,7 +206,7 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
 
 StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username(""),reciptId(1),subscriptionId(1),eventsByChannelAndUser(),receiptActions()
 { //: loggedIn(false), username(""), inputThread(), responseThread()
-    
+
 }
 
 StompProtocol::~StompProtocol()
@@ -270,7 +270,6 @@ std::string StompProtocol::joinChannel(const std::string &channelName)
     receiptActions[reciptId] = "join:" + channelName; // Track the action
 
     std::string frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
-    std::cout << frame << std::endl;
     reciptId++;
     subscriptionId++;
     //connectionHandler->sendFrameAscii(frame, '\0');
@@ -331,6 +330,7 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 // Handle the specific action
                 if (action == "logout")
                 {
+                    std::cout<<"entered logout response"<<std::endl;
                     connectionHandler->close();
                 }
                 else if (action.rfind("join:", 0) == 0)
@@ -340,6 +340,7 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 }
                 else if (action.rfind("exit:", 0) == 0)
                 {
+                    std::cout<<"entered exit channel response"<<std::endl;
                     std::string channel = action.substr(5); // Extract channel name
                     std::cout << "Exited channel: " << channel << std::endl;
                 }
