@@ -55,16 +55,19 @@ bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
 bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
 	int tmp = 0;
 	boost::system::error_code error;
-	std::cout << "Socket " << socket_.native_handle() << std::endl;	
+	// std::cout << "Socket " << socket_.native_handle() << std::endl;	
 
-	  if (!this->isConnected())
-                {
-                    std::cout<<"Connection lost or not established."<<std::endl;
-                }
-				if (!socket_.is_open()) {
-    std::cout << "Socket is not open." << std::endl;
-    return false;
-}
+	// if (!this->isConnected())
+    //             {
+    //                 std::cout<<"Connection lost or not established."<<std::endl;
+    //             }
+	// if (!socket_.is_open()) {
+    // std::cout << "Socket is not open." << std::endl;
+	// }
+	// if (bytes == nullptr || bytesToWrite <= 0) {
+    // std::cerr << "Invalid input to sendBytes: bytes is null or bytesToWrite <= 0" << std::endl;
+	// return false;
+	// }
 
 	try {
 		while (!error && bytesToWrite > tmp) {
@@ -90,10 +93,12 @@ bool ConnectionHandler::sendLine(std::string &line) {
 }
 
 
+
 bool ConnectionHandler::getFrameAscii(std::string &frame, char delimiter) {
 	char ch;
 	// Stop when we encounter the null character.
 	// Notice that the null character is not appended to the frame string.
+
 	try {
 		do {
 			if (!getBytes(&ch, 1)) {
@@ -114,10 +119,8 @@ bool ConnectionHandler::sendFrameAscii(const std::string &frame, char delimiter)
 	{
 		std::cout<<"disconnected from send frame ascii"<<std::endl;
 	}
-	if (this==nullptr)
-	{
-		std::cout<<"nullptr from send frame ascii"<<std::endl;
-	}
+	std::cout << "Frame to send: " << frame << std::endl;
+
 	bool result = sendBytes(frame.c_str(), frame.length());
 	if (!result) return false;
 	return sendBytes(&delimiter, 1);
@@ -159,17 +162,7 @@ void ConnectionHandler::close() {
 
 	}
 
-  ConnectionHandler& ConnectionHandler::operator=(const ConnectionHandler& other)
-        {
-			if (this != &other)
-			{
-				// this->host_=other.host_;
-				// this->io_service_=other.io_service_;
-				// this->port_=other.port_;
-				// this->socket_=other.socket_;
-			}
-			return *this;
-        }
+
 
 	std::string ConnectionHandler::getHost(){
 		return this->host_;
