@@ -83,7 +83,7 @@ std::string StompProtocol::report(const std::string &filePath)
     names_and_events eventsData = parseEventsFile(filePath);
     const std::string &channelName = eventsData.channel_name;
     std::vector<event> &events = eventsData.events;
-    std::string frame;
+    std::string frame="";
 
     if (events.empty())
     {
@@ -93,8 +93,7 @@ std::string StompProtocol::report(const std::string &filePath)
     for (const auto &event : events)
     {
         saveEvent(channelName, event);
-        //connectionHandler->sendFrameAscii(createSendFrame(channelName, event), '\0');
-        frame += createSendFrame(channelName,event);
+        connectionHandler->sendFrameAscii(createSendFrame(channelName, event), '\0');
     }
 
     return frame;

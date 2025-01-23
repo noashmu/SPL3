@@ -10,6 +10,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     private Connections<String> connections=ConnectionsImpl.getInstance();
     private boolean shouldTerminate = false;
     private UserManeger userManeger;  // Reference to UserManager
+    private int MessageId;
 
 
     // Store user subscriptions
@@ -17,7 +18,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     public StompMessagingProtocolImpl(){
         userManeger = new UserManeger();
-
+        MessageId=0;
     }
 
     @Override
@@ -87,7 +88,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     
         if (destination != null && subscriptionId != null) {
             subscriptions.put(destination, Integer.parseInt(subscriptionId));
-            connections.subscribe( BaseServer.count.get(), destination);
+            connections.subscribe(Integer.parseInt(subscriptionId), destination);
     
             if (receipt != null) {
                 connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
@@ -116,7 +117,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     private void handleSend(String[] lines) {
         String destination = getHeader(lines, "destination");
         String body = getBody(lines);
-    
+        
         if (destination != null && subscriptions.containsKey(destination)) {
             connections.send(destination, body);
         } else {
@@ -171,6 +172,17 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
    public Connections<String> getConnections()
    {
     return this.connections;
+   }
+   public String createFrameMessage(String subscriptidDEST, String body)
+   {
+        MessageId++;
+        String frame="";
+        frame+= "MESSAGE\n"+
+        "subscription:" + ""+"\n"
+        +"message-id:"+ MessageId +"\n"+
+        "destination:"+subscriptidDEST+"\n"+body+"\n"+"\n";
+
+        return frame;
    }
 
 }
