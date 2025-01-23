@@ -49,7 +49,7 @@ std::string CommandHandler::handleCommand(const std::string& command) {
         if (tokens.size() != 2) {
                 std::cout<< "report command needs 1 args: {file}" <<std::endl;
         } else {
-            frame = protocol.report(tokens[1]);
+             protocol.report(tokens[1]);
         }
     } 
     else if (action == "summary") {

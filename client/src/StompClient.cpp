@@ -125,12 +125,13 @@ int main(int argc, char *argv[]) {
 
                 // שליחת הודעה לשרת
                 std::cout << "Frame being sent:\n" << frame << std::endl;
+            if (message.substr(0,message.find(' '))!="report"){
                 if (!connectionHandler->sendFrameAscii(frame,'\0')){
                     std::cout << "Error sending message: " << message << std::endl;
                     shouldTerminate = true;
                     break;
                 }
-
+            }
                 // קבלת הודעות מהשרת
                 std::string responseFrame;
                 if (!connectionHandler->isConnected())
