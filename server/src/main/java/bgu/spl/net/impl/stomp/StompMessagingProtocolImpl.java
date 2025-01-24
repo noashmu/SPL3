@@ -132,13 +132,13 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
         }
 
-        String username = ((UserManeger) connections).getUsernameByConnectionId( BaseServer.count.get());
+        String username = userManeger.getUsernameByConnectionId( BaseServer.count.get());
         if (username != null) {
             userManeger.logout(username);
         }
 
         connections.disconnect( BaseServer.count.get());
-        shouldTerminate = true;
+       // shouldTerminate = true;
     }
 
     private void handleError(String errorMessage) {
