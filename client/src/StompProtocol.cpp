@@ -248,14 +248,7 @@ std::string StompProtocol::login(const std::string &host, const std::string &por
     std::string frame = createConnectFrame(host, user, password);
     std::cout<<frame<<std::endl;
 
-    // Send the CONNECT frame
-    // if (!connectionHandler->sendFrameAscii(frame, '\0'))
-    // {
-    //     std::cout << "Could not connect to server" << std::endl;
-    //     return;
-    // }
     username = user;
-   // loggedIn = true;
 
     return frame;
 }
@@ -282,9 +275,10 @@ std::string StompProtocol::exitChannel(const std::string &channelName)
         std::cout << "Please login first" << std::endl;
         return "";
     }
-    receiptActions[reciptId++] = "exit:" + channelName; // Track the action
+    receiptActions[reciptId] = "exit:" + channelName; // Track the action
     std::string frame = createUnsubscribeFrame(subscriptionId - 1, reciptId);
-    //connectionHandler->sendFrameAscii(frame, '\0');
+    reciptId++;
+
     return frame;
 }
 
@@ -295,14 +289,10 @@ std::string StompProtocol::logout()
         std::cout << "You are not logged in" << std::endl;
         return "";
     }
-    receiptActions[reciptId++] = "logout"; // Track the logout action
+    receiptActions[reciptId] = "logout"; // Track the logout action
     std::string frame = createDisconnectFrame(reciptId);
+    reciptId++;
 
-    // if (connectionHandler->sendFrameAscii(frame, '\0'))
-    // {
-    //     loggedIn = false;
-    //     username.clear();
-    // }
     this->loggedIn=false;
 
     return frame;
@@ -312,7 +302,7 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
 {
     if (responseType == "RECEIPT")
     {
-        // Parse the receipt-id from the frame
+   // Parse the receipt-id from the frame
         size_t receiptPos = frame.find("receipt-id:");
         if (receiptPos != std::string::npos)
         {
@@ -320,31 +310,41 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
             size_t end = frame.find('\n', start);
             int receiptId = std::stoi(frame.substr(start, end - start));
 
-            // Find the action in the map
-            if (receiptActions.find(receiptId) != receiptActions.end())
-            {
-                std::string action = receiptActions[receiptId];
-                receiptActions.erase(receiptId); // Remove the processed receipt
+            
 
-                // Handle the specific action
+            // Find and process the action
+            auto actionIt = receiptActions.find(receiptId);
+            if (actionIt != receiptActions.end())
+            {
+                std::string action = actionIt->second;
+
+                receiptActions.erase(actionIt); // Remove the processed receipt
+
                 if (action == "logout")
                 {
-                    std::cout<<"entered logout response"<<std::endl;
-                    connectionHandler->close();
+                    std::cout << "Logout successful!" << std::endl;
+                    if (connectionHandler!=nullptr)
+                    {
+                        connectionHandler->close();
+                    }
+                    
                 }
                 else if (action.rfind("join:", 0) == 0)
                 {
-                    std::string channel = action.substr(5); // Extract channel name
+                    std::string channel = action.substr(5);
                     std::cout << "Joined channel: " << channel << std::endl;
                 }
                 else if (action.rfind("exit:", 0) == 0)
                 {
-                    std::cout<<"entered exit channel response"<<std::endl;
-                    std::string channel = action.substr(5); // Extract channel name
+                    std::string channel = action.substr(5);
                     std::cout << "Exited channel: " << channel << std::endl;
                 }
+                else
+                {
+                    std::cerr << "Unknown action: " << action << std::endl;
+                }
             }
-        }
+    }
     }
     else if (responseType == "MESSAGE")
     {
@@ -380,9 +380,9 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 std::cerr << "Error details: " << body << std::endl;
             }
         }
-        connectionHandler->close();
     }
 }
+
 
 void StompProtocol::processMessageFrame(const std::string &destination, const std::string &body)
 {
