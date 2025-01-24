@@ -28,7 +28,6 @@ public class ConnectionsImpl<T> implements Connections<T>{
         System.out.println(connectionId);
         ConnectionHandler<T> handler = connectionHandlers.get(connectionId);
         if (handler != null) {
-            System.out.println("NULLL");
             handler.send(msg);
             return true;
         }

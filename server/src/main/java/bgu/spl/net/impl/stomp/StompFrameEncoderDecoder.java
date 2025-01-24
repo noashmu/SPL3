@@ -27,7 +27,6 @@ public class StompFrameEncoderDecoder implements MessageEncoderDecoder<String>  
 
     @Override
     public byte[] encode(String message) {
-        System.out.println("encode enter");
 
         return (message + '\0').getBytes(StandardCharsets.UTF_8);
     }
