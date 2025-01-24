@@ -323,10 +323,10 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 if (action == "logout")
                 {
                     std::cout << "Logout successful!" << std::endl;
-                    if (connectionHandler!=nullptr)
-                    {
-                        connectionHandler->close();
-                    }
+                    // if (connectionHandler!=nullptr)
+                    // {
+                    //     connectionHandler->close();
+                    // }
                     
                 }
                 else if (action.rfind("join:", 0) == 0)

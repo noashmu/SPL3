@@ -9,11 +9,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T>{
-    private final ConcurrentHashMap<Integer, ConnectionHandler<T>> connectionHandlers = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer>> topicSubscribers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, ConnectionHandler<T>> connectionHandlers;
+    private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer>> topicSubscribers;
     private static ConnectionsImpl<?> INSTANCE;
+    String errorMsg;
     private ConnectionsImpl(){
-
+        connectionHandlers= new ConcurrentHashMap<>();
+        topicSubscribers= new ConcurrentHashMap<>();
     }
     public static synchronized <T> ConnectionsImpl<T> getInstance()
     {
@@ -52,6 +54,13 @@ public class ConnectionsImpl<T> implements Connections<T>{
 
     @Override
     public void subscribe(int connectionId, String channel) {
+        ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
+        if (subscribers != null) {
+            if (subscribers != null && subscribers.contains(connectionId)) {
+                System.out.println("User already subscribed to channel: " + channel);
+                return; 
+            }
+        }
         topicSubscribers.computeIfAbsent(channel, k -> new ConcurrentLinkedQueue<>()).add(connectionId);
     }
 
@@ -59,9 +68,16 @@ public class ConnectionsImpl<T> implements Connections<T>{
     public void unsubscribe(int connectionId, String channel) {
         ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
         if (subscribers != null) {
-            subscribers.remove(connectionId);
+            if (subscribers.contains(connectionId)) {
+                subscribers.remove(connectionId);
+            }
+            else{
+                System.out.println("user is not subscribe to channel "+channel );
+            }
+        
         }
     }
+
     
     @Override
     public int addConnection(ConnectionHandler<T> handler) {
@@ -74,5 +90,6 @@ public class ConnectionsImpl<T> implements Connections<T>{
         connectionHandlers.put(BaseServer.count.get(), handler);
 
     }
+
 
 }

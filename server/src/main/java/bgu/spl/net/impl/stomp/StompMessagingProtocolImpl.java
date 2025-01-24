@@ -14,7 +14,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
 
     // Store user subscriptions
-    private ConcurrentHashMap<String, Integer> subscriptions = new ConcurrentHashMap<>();
+   // private ConcurrentHashMap<String, Integer> subscriptions = new ConcurrentHashMap<>();
 
     public StompMessagingProtocolImpl(){
         userManeger = new UserManeger();
@@ -77,6 +77,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             System.out.println("Connected");
             connections.send(BaseServer.count.get(), "CONNECTED\nversion:1.2\n\n");
         } else {
+          //  String errorMsg= 
             handleError("Login failed: User already logged in or incorrect credentials.");
         }    
     }
@@ -86,16 +87,15 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         String subscriptionId = getHeader(lines, "id");
         String receipt = getHeader(lines, "receipt"); // Optional receipt header
     
-        if(!subscriptions.containsValue(Integer.parseInt(subscriptionId))){ //new subscriber
-            subscriptions.put(destination, Integer.parseInt(subscriptionId));
+
+           // subscriptions.put(destination, Integer.parseInt(subscriptionId));
             connections.subscribe(Integer.parseInt(subscriptionId), destination);
             if (receipt != null) {
                 connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
-        }
-        else{ //existed subscriber
-            handleError("user already subscribe to channel "+destination);               
-        }
+        
+          //  handleError("user already subscribe to channel "+destination);               
+        
     }
 
     private void handleUnsubscribe(String[] lines) {
@@ -103,11 +103,11 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         String receipt = getHeader(lines, "receipt"); // Optional receipt header
     
         if (subscriptionId != null) {
-            subscriptions.values().remove(Integer.parseInt(subscriptionId));
-            connections.unsubscribe( BaseServer.count.get(), subscriptionId);
     
+    //        subscriptions.values().remove(Integer.parseInt(subscriptionId));
+            connections.unsubscribe(BaseServer.count.get(), subscriptionId);
             if (receipt != null) {
-                connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+                connections.send(BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
         } else {
             handleError("Invalid UNSUBSCRIBE frame: Missing 'id' header.");
@@ -119,10 +119,11 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         destination = destination.substring(1); //for destination without /
         String body = getBody(lines);
         
-        if (destination != null && subscriptions.containsKey(destination)) {
+        if (destination != null) {
             connections.send(destination, body);
         } else {
-            handleError("Invalid SEND frame: Client not subscribed to destination or missing 'destination' header.");
+            
+            handleError(userManeger.getErrorMessage());
         }
     }
 

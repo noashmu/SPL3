@@ -32,16 +32,19 @@ void splitBySpaces(const std::string& str, std::vector<std::string>& result) {
 
 
 int main(int argc, char *argv[]) {
-
-    ConnectionHandler* connectionHandler=nullptr;
+    ConnectionHandler* connectionHandler = nullptr; // Pointer for ConnectionHandler
+    StompProtocol protocol(connectionHandler, false); // Protocol initialized with a placeholder
+    CommandHandler commandHandler(protocol);
+    ResponseHandler responseHandler(protocol);
 
     std::queue<std::string> messageQueue;
     std::mutex queueMutex;
     std::condition_variable queueCV;
 
-    bool islogin = false;
+    bool isLoggedIn = false;
     bool shouldTerminate = false;
 
+    // Input thread
     std::thread inputThread([&]() {
         std::string command;
         std::vector<std::string> hostPort;
@@ -68,50 +71,40 @@ int main(int argc, char *argv[]) {
                     continue;
                 }
 
-
-                // בדיקה אם יש צורך בחיבור חדש
-                if (connectionHandler==nullptr){
-               //    connectionHandler->getHost() != hostPort[0] || 
-               //    connectionHandler->getPort() != static_cast<short>(std::stoi(hostPort[1]))) {
-                    
-                    // אם הכתובת או הפורט השתנו - נאתחל את החיבור מחדש
-                 //   connectionHandler->close();
-                  //  delete connectionHandler;
-                    std::cout << hostPort[0]<< "  start "<<hostPort[1]<< std::endl;
-                    connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
-                    if (!connectionHandler->connect()) {
-                        std::cout << "Could not connect to server" << std::endl;
-                        continue;
-                    }
-
-             
+                // Check if re-login is needed
+                if (isLoggedIn) {
+                    std::cout << "You are already logged in. Please logout first." << std::endl;
+                    continue;
                 }
 
-                messageQueue.push(command);
-                queueCV.notify_all();
-
-    
-            } 
-       
-            else {
-                messageQueue.push(command);
-                queueCV.notify_all();
-                //commandHandler.handleCommand(command);
-                if (command == "logout") {
-                    islogin = false;
-                    shouldTerminate = true;
+                if (connectionHandler != nullptr) {
+                    delete connectionHandler; // Clean up the old connection handler
                 }
+
+                connectionHandler = new ConnectionHandler(hostPort[0], static_cast<short>(std::stoi(hostPort[1])));
+                if (!connectionHandler->connect()) {
+                    std::cout << "Could not connect to server" << std::endl;
+                    delete connectionHandler;
+                    connectionHandler = nullptr;
+                    continue;
+                }
+
+                // Update protocol with the new connection handler
+                StompProtocol protocol(connectionHandler, true);
+                CommandHandler commandHandler(protocol);
+                ResponseHandler responseHandler(protocol);
+
+                isLoggedIn = true;
+                std::cout << "Connected to server successfully." << std::endl;
             }
 
+            messageQueue.push(command);
+            queueCV.notify_all();
         }
     });
 
-    
+    // Response thread
     std::thread responseThread([&]() {
-        StompProtocol protocol(connectionHandler, false);
-        CommandHandler commandHandler(protocol);
-        ResponseHandler responseHandler(protocol);
-
         while (!shouldTerminate) {
             std::unique_lock<std::mutex> lock(queueMutex);
             queueCV.wait(lock, [&]() { return !messageQueue.empty() || shouldTerminate; });
@@ -123,38 +116,44 @@ int main(int argc, char *argv[]) {
                 frame = commandHandler.handleCommand(message);
                 lock.unlock();
 
-                // שליחת הודעה לשרת
+                // Send frame to server
                 std::cout << "Frame being sent:\n" << frame << std::endl;
-            if (message.substr(0,message.find(' '))!="report"){
-                if (!connectionHandler->sendFrameAscii(frame,'\0')){
-                    std::cout << "Error sending message: " << message << std::endl;
-                    shouldTerminate = true;
-                    break;
+                if (message.substr(0, message.find(' ')) != "report") {
+                    if (!connectionHandler->sendFrameAscii(frame, '\0')) {
+                        std::cout << "Error sending message: " << message << std::endl;
+                       // shouldTerminate = true;
+                       // break;
+                    }
                 }
-            }
-                // קבלת הודעות מהשרת
+
+                // Receive responses from the server
                 std::string responseFrame;
-                if (!connectionHandler->isConnected())
-                {
-                    std::cout<<"Connection lost or not established."<<std::endl;
-                }
-                
-                if (connectionHandler != nullptr && connectionHandler->getFrameAscii(responseFrame, '\0')) {
+                if (connectionHandler->isConnected() && connectionHandler->getFrameAscii(responseFrame, '\0')) {
                     std::cout << "Received from server: " << responseFrame << std::endl;
                     responseHandler.handleResponse(responseFrame);
+
+                    // Handle logout case
+                    if (message == "logout") {
+                        isLoggedIn = false;
+                        connectionHandler->close();
+                        delete connectionHandler;
+                        connectionHandler = nullptr;
+                    }
                 }
 
                 lock.lock();
             }
         }
-
     });
 
     inputThread.join();
     responseThread.join();
 
-    // connectionHandler->close();
-    // delete connectionHandler;
+    if (connectionHandler != nullptr) {
+        connectionHandler->close();
+        delete connectionHandler;
+    }
 
     return 0;
 }
+
