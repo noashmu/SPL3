@@ -86,15 +86,15 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         String subscriptionId = getHeader(lines, "id");
         String receipt = getHeader(lines, "receipt"); // Optional receipt header
     
-        if (destination != null && subscriptionId != null) {
+        if(!subscriptions.containsValue(Integer.parseInt(subscriptionId))){ //new subscriber
             subscriptions.put(destination, Integer.parseInt(subscriptionId));
             connections.subscribe(Integer.parseInt(subscriptionId), destination);
-    
             if (receipt != null) {
                 connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
-        } else {
-            handleError("Invalid SUBSCRIBE frame: Missing headers.");
+        }
+        else{ //existed subscriber
+            handleError("user already subscribe to channel "+destination);               
         }
     }
 
@@ -116,6 +116,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     private void handleSend(String[] lines) {
         String destination = getHeader(lines, "destination");
+        destination = destination.substring(1); //for destination without /
         String body = getBody(lines);
         
         if (destination != null && subscriptions.containsKey(destination)) {
@@ -143,7 +144,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     private void handleError(String errorMessage) {
         connections.send( BaseServer.count.get(), "ERROR\nmessage:" + errorMessage + "\n\n");
-        shouldTerminate = true;
+        //shouldTerminate = true;
     }
 
     private String getHeader(String[] lines, String header) {
