@@ -17,6 +17,7 @@ private:
     //std::thread inputThread, responseThread;
     std::map<std::string, std::map<std::string, std::vector<event>>> eventsByChannelAndUser;
     std::map<int, std::string> receiptActions; // Maps receipt-id to actions
+    std::map<std::string, std::map<std::string, int>> subscriptionById;
 
     
     // Helper methods for creating STOMP frames
@@ -32,6 +33,10 @@ private:
 
     void splitBySpaces(const std::string& str, std::vector<std::string>& result);
     void split_str(const std::string& str, char delimiter, std::vector<std::string>& result);
+
+    bool isAlreadySub(const std::string &channelName);
+    bool isAlreadySubForExit(const std::string &channelName);
+    void addSubscriptionByUser(const std::string &channelName);
 
 
 public:
@@ -51,4 +56,5 @@ public:
     void processMessageFrame(const std::string& destination, const std::string& body);
     void run(); // Starts threads for input and response handling
     void SetIsLogin(bool);
+
 };

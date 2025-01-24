@@ -30,6 +30,7 @@ std::string CommandHandler::handleCommand(const std::string& command) {
 			splitBySpaces(command,commandDetails);
             std::vector<std::string> hostPort=split_str(commandDetails[1]);
             frame=protocol.login(hostPort[0],hostPort[1], tokens[2], tokens[3]);
+            //protocol.addSubscriptionByUser(tokens[2]);
     } 
     else if (action == "join") {
         if (tokens.size() != 2) {

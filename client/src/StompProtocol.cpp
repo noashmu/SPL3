@@ -203,7 +203,7 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
     }
 }
 
-StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username(""),reciptId(1),subscriptionId(1),eventsByChannelAndUser(),receiptActions()
+StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username(""),reciptId(1),subscriptionId(1),eventsByChannelAndUser(),receiptActions(),subscriptionById()
 { //: loggedIn(false), username(""), inputThread(), responseThread()
 
 }
@@ -261,12 +261,73 @@ std::string StompProtocol::joinChannel(const std::string &channelName)
     }
     receiptActions[reciptId] = "join:" + channelName; // Track the action
 
-    std::string frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
-    reciptId++;
-    subscriptionId++;
-    //connectionHandler->sendFrameAscii(frame, '\0');
+    std::string frame;
+    if(isAlreadySubForJoin(channelName)){
+        frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
+        std::cout<<"THE FRAME IS: "+ frame + "    JUST TO CHECK"<<std::endl;
+        reciptId++;
+    }
+    else{         std::cout<<"ENTERD ELSE"<<std::endl;
+
+        frame = "";}
+
     return frame;
 }
+
+void StompProtocol::addSubscriptionByUser(const std::string &channelName){
+    subscriptionById[channelName].insert({username,subscriptionId});
+}
+
+bool StompProtocol::isAlreadySubForJoin(const std::string &channelName){
+    auto userSubscriptions = subscriptionById.find(channelName);
+    auto& channelsMap = userSubscriptions->second; // Inner map of channels
+
+    if(subscriptionById.empty()){ //if no one is subscribe we can do join
+        subscriptionId++; 
+        addSubscriptionByUser(channelName);
+        return true;
+    }
+
+    if (userSubscriptions == subscriptionById.end() || //if channel is not found
+        channelsMap.find(username) == channelsMap.end()) { // if user is not found
+            subscriptionId++; 
+            addSubscriptionByUser(channelName);
+            return false;
+    }
+
+    return true;
+}
+
+bool StompProtocol::isAlreadySubForExit(const std::string &channelName){
+     // Check if the channel exists in the subscriptionById map
+    auto channelIt = subscriptionById.find(channelName);
+
+    // If the channel does not exist, return false
+    if (channelIt == subscriptionById.end()) {
+        return false;
+    }
+
+    // Access the inner map (users subscribed to this channel)
+    auto& usersMap = channelIt->second;
+
+    // Check if the user exists in the inner map
+    auto userIt = usersMap.find(username);
+
+    // If the user exists, erase them from the map and return true
+    if (userIt != usersMap.end()) {
+        usersMap.erase(userIt);
+        // If the inner map becomes empty after removal, erase the outer map entry (channel)
+        if (usersMap.empty()) {
+            subscriptionById.erase(channelIt);
+        }
+        return true;
+    }
+
+    // Return false if the user is not found
+    return false;
+
+}
+
 
 std::string StompProtocol::exitChannel(const std::string &channelName)
 {
@@ -276,8 +337,13 @@ std::string StompProtocol::exitChannel(const std::string &channelName)
         return "";
     }
     receiptActions[reciptId] = "exit:" + channelName; // Track the action
-    std::string frame = createUnsubscribeFrame(subscriptionId - 1, reciptId);
-    reciptId++;
+
+    std::string frame;
+    if(isAlreadySubForExit(channelName)){
+        frame = createUnsubscribeFrame(subscriptionId - 1, reciptId);
+        reciptId++;
+    }
+    else { frame = "";}
 
     return frame;
 }
