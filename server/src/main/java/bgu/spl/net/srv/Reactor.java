@@ -2,6 +2,8 @@ package bgu.spl.net.srv;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.api.MessagingProtocol;
+import bgu.spl.net.impl.stomp.ConnectionsImpl;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedSelectorException;
@@ -10,6 +12,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class Reactor<T> implements Server<T> {
@@ -22,6 +25,8 @@ public class Reactor<T> implements Server<T> {
 
     private Thread selectorThread;
     private final ConcurrentLinkedQueue<Runnable> selectorTasks = new ConcurrentLinkedQueue<>();
+    private final AtomicInteger connectionCounter = new AtomicInteger(0); // Add connection counter
+
 
     public Reactor(
             int numThreads,
@@ -92,14 +97,32 @@ public class Reactor<T> implements Server<T> {
     }
 
 
+    // private void handleAccept(ServerSocketChannel serverChan, Selector selector) throws IOException {
+    //     SocketChannel clientChan = serverChan.accept();
+    //     clientChan.configureBlocking(false);
+    //     final NonBlockingConnectionHandler<T> handler = new NonBlockingConnectionHandler<>(
+    //             readerFactory.get(),
+    //             protocolFactory.get(),
+    //             clientChan,
+    //             this);
+    //     clientChan.register(selector, SelectionKey.OP_READ, handler);
+    // }
     private void handleAccept(ServerSocketChannel serverChan, Selector selector) throws IOException {
         SocketChannel clientChan = serverChan.accept();
         clientChan.configureBlocking(false);
-        final NonBlockingConnectionHandler<T> handler = new NonBlockingConnectionHandler<>(
-                readerFactory.get(),
-                protocolFactory.get(),
-                clientChan,
-                this);
+        
+        int connectionId = connectionCounter.incrementAndGet(); // Generate unique connectionId
+        
+        MessagingProtocol<T> protocol = protocolFactory.get();
+        protocol.start(connectionId, ConnectionsImpl.getInstance()); // Initialize protocol with connectionId
+    
+        NonBlockingConnectionHandler<T> handler = new NonBlockingConnectionHandler<>(
+            readerFactory.get(),
+            protocol,
+            clientChan,
+            this
+        );
+        ConnectionsImpl.getInstance().addConnection((ConnectionHandler<Object>)handler, connectionId);
         clientChan.register(selector, SelectionKey.OP_READ, handler);
     }
 
@@ -118,6 +141,7 @@ public class Reactor<T> implements Server<T> {
             handler.continueWrite();
         }
     }
+
 
     private void runSelectionThreadTasks() {
         while (!selectorTasks.isEmpty()) {

@@ -1,12 +1,10 @@
 package bgu.spl.net.impl.stomp;
-import java.util.concurrent.ConcurrentHashMap;
 import bgu.spl.net.api.*;
 import bgu.spl.net.srv.BaseServer;
-import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 
 public class StompMessagingProtocolImpl implements StompMessagingProtocol<String> {
-    //private int connectionId;
+    private int connectionId;
     private Connections<String> connections=ConnectionsImpl.getInstance();
     private boolean shouldTerminate = false;
     private UserManeger userManeger;  // Reference to UserManager
@@ -23,9 +21,10 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     @Override
     public void start(int connectionId, Connections<String> connections) {
-        //this.connectionId = connectionId;
+        this.connectionId=connectionId;
         this.connections = connections;
     }
+    
 
     @Override
     public String process(String message) {
@@ -71,11 +70,11 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
             return;
         }
     
-        boolean loginSuccessful = userManeger.login(username, password, BaseServer.count.get());
+        boolean loginSuccessful = userManeger.login(username, password, connectionId);
     
         if (loginSuccessful) {
             System.out.println("Connected");
-            connections.send(BaseServer.count.get(), "CONNECTED\nversion:1.2\n\n");
+            connections.send(connectionId, "CONNECTED\nversion:1.2\n\n");
         } else {
           //  String errorMsg= 
             handleError("Login failed: User already logged in or incorrect credentials.");
@@ -91,7 +90,7 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
            // subscriptions.put(destination, Integer.parseInt(subscriptionId));
             connections.subscribe(Integer.parseInt(subscriptionId), destination);
             if (receipt != null) {
-                connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+                connections.send( connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
         
           //  handleError("user already subscribe to channel "+destination);               
@@ -105,9 +104,9 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         if (subscriptionId != null) {
     
     //        subscriptions.values().remove(Integer.parseInt(subscriptionId));
-            connections.unsubscribe(BaseServer.count.get(), subscriptionId);
+            connections.unsubscribe(connectionId, subscriptionId);
             if (receipt != null) {
-                connections.send(BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+                connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
         } else {
             handleError("Invalid UNSUBSCRIBE frame: Missing 'id' header.");
@@ -132,20 +131,20 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         String receipt = getHeader(lines, "receipt");
 
         if (receipt != null) {
-            connections.send( BaseServer.count.get(), "RECEIPT\nreceipt-id:" + receipt + "\n\n");
+            connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
         }
 
-        String username = userManeger.getUsernameByConnectionId( BaseServer.count.get());
+        String username = userManeger.getUsernameByConnectionId(connectionId);
         if (username != null) {
             userManeger.logout(username);
         }
 
-        connections.disconnect( BaseServer.count.get());
+        connections.disconnect(connectionId);
        // shouldTerminate = true;
     }
 
     private void handleError(String errorMessage) {
-        connections.send( BaseServer.count.get(), "ERROR\nmessage:" + errorMessage + "\n\n");
+        connections.send(connectionId, "ERROR\nmessage:" + errorMessage + "\n\n");
         //shouldTerminate = true;
     }
 

@@ -5,14 +5,13 @@ import bgu.spl.net.srv.ConnectionHandler;
 import bgu.spl.net.srv.Connections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConnectionsImpl<T> implements Connections<T>{
     private final ConcurrentHashMap<Integer, ConnectionHandler<T>> connectionHandlers;
     private final ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer>> topicSubscribers;
     private static ConnectionsImpl<?> INSTANCE;
     String errorMsg;
+
     private ConnectionsImpl(){
         connectionHandlers= new ConcurrentHashMap<>();
         topicSubscribers= new ConcurrentHashMap<>();
@@ -88,7 +87,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
     }
     public void addConnection(ConnectionHandler<T> handler,int connectionId)
     {
-        connectionHandlers.put(BaseServer.count.get(), handler);
+        connectionHandlers.put(connectionId ,handler);
 
     }
 
