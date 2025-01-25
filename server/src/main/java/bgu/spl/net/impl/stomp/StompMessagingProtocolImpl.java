@@ -1,6 +1,5 @@
 package bgu.spl.net.impl.stomp;
 import bgu.spl.net.api.*;
-import bgu.spl.net.srv.BaseServer;
 import bgu.spl.net.srv.Connections;
 
 public class StompMessagingProtocolImpl implements StompMessagingProtocol<String> {
