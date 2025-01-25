@@ -116,9 +116,10 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     private void handleSend(String[] lines) {
         String destination = getHeader(lines, "destination");
-        destination = destination.substring(1); //for destination without /
+        System.out.println("destination is: "+destination);
+        //destination = destination.substring(1); //for destination without /
         String body = getBody(lines);
-        
+ //       System.out.println(body);
         if (destination != null) {
             connections.send(destination, body);
         } else {

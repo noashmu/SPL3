@@ -98,7 +98,7 @@ bool ConnectionHandler::getFrameAscii(std::string &frame, char delimiter) {
 	char ch;
 	// Stop when we encounter the null character.
 	// Notice that the null character is not appended to the frame string.
-
+	std::cout <<"entered get frame ascii"<< std::endl;
 	try {
 		do {
 			if (!getBytes(&ch, 1)) {

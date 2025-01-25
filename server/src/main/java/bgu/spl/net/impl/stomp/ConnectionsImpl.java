@@ -41,6 +41,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
         ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
         if (subscribers != null) {
             for (Integer connectionId : subscribers) {
+                System.out.println("entered send to channel sub");
                 send(connectionId, msg);
             }
         }

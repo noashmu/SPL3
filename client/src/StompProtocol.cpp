@@ -9,6 +9,8 @@
 #include <fstream>
 #include <iomanip> // Add this for std::put_time
 #include <boost/filesystem.hpp>
+#include <ctime>
+#include <sstream>
 namespace fs = boost::filesystem;
 
 
@@ -79,6 +81,10 @@ std::string StompProtocol::createDisconnectFrame(int receipt)
 
 std::string StompProtocol::report(const std::string &filePath)
 {
+    if (connectionHandler == nullptr || !connectionHandler->isConnected()) {
+        std::cerr << "Error: No active connection to the server." << std::endl;
+        return "";
+    }
     // Parse the events file.
     names_and_events eventsData = parseEventsFile(filePath);
     const std::string &channelName = eventsData.channel_name;
@@ -90,12 +96,15 @@ std::string StompProtocol::report(const std::string &filePath)
        return "";
     }
     // Save and send each event.
-    for (const auto &event : events)
-    {
+    for (auto &event : events)
+    {   
+        //std::cout<<""<<std:endl;
+        event.setEventOwnerUser(username);
         saveEvent(channelName, event);
-        connectionHandler->sendFrameAscii(createSendFrame(channelName, event), '\0');
+        std::string frame = createSendFrame(channelName, event);
+        connectionHandler->sendFrameAscii(frame, '\0');
     }
-
+    std::cout<<"reported"<<std::endl;
     return frame;
 }
 
@@ -115,11 +124,17 @@ void StompProtocol::saveEvent(const std::string &channelName, const event &event
 // Helper function: Convert epoch to date string
 std::string StompProtocol::epochToDate(time_t epochTime)
 {
-    std::ostringstream oss;
-    std::tm *tmPtr = std::localtime(&epochTime);
-    oss << std::put_time(tmPtr, "%d/%m/%y %H:%M");
-    return oss.str();
+    char buffer[20]; // Enough to hold "DD/MM/YY HH:MM"
+    std::tm *tmPtr = std::localtime(&epochTime); // Convert epoch to local time
+    if (tmPtr != nullptr)
+    {
+        std::strftime(buffer, sizeof(buffer), "%d/%m/%y %H:%M", tmPtr); // Format the time
+        return std::string(buffer); // Return formatted time as string
+    }
+    return "Invalid time"; // If conversion fails, return error message
 }
+
+
 
 // Helper function: Create a summary from description
 std::string StompProtocol::createSummary(const std::string &description)
@@ -189,15 +204,19 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
         file << "Event Reports:\n";
 
         int reportNumber = 1;
-        for (const auto &event : events)
-        {
-            file << "Report_" << reportNumber << ":\n";
-            file << "city: " << event.get_city() << "\n";
-            file << "date time: " << epochToDate(event.get_date_time()) << "\n";
-            file << "event name: " << event.get_name() << "\n";
-            file << "summary: " << createSummary(event.get_description()) << "\n";
-            reportNumber++;
-        }
+for (const auto &event : events)
+{
+    file << "Report_" << reportNumber << ":\n";
+    file << "city: " << event.get_city() << "\n";
+
+    // Cast date_time (int) to time_t
+    time_t epochTime = static_cast<time_t>(event.get_date_time());
+    file << "date time: " << epochToDate(epochTime) << "\n";
+
+    file << "event name: " << event.get_name() << "\n";
+    file << "summary: " << createSummary(event.get_description()) << "\n";
+    reportNumber++;
+}
 
         file.close();
     }
@@ -500,3 +519,7 @@ void StompProtocol::processMessageFrame(const std::string &destination, const st
         this->loggedIn=islogin;
     }
 
+    void StompProtocol::setConnectionHandler(ConnectionHandler* c)
+    {
+        this->connectionHandler=c;
+    }
