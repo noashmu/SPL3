@@ -262,14 +262,18 @@ std::string StompProtocol::joinChannel(const std::string &channelName)
     receiptActions[reciptId] = "join:" + channelName; // Track the action
 
     std::string frame;
-    if(isAlreadySubForJoin(channelName)){
+
+    if(subscriptionById.empty()){ //if no one is subscribe we can do join
+        subscriptionId++; 
+        addSubscriptionByUser(channelName);
         frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
-        std::cout<<"THE FRAME IS: "+ frame + "    JUST TO CHECK"<<std::endl;
         reciptId++;
     }
-    else{         std::cout<<"ENTERD ELSE"<<std::endl;
-
-        frame = "";}
+    else if(!isAlreadySubForJoin(channelName)){
+        frame = createSubscribeFrame(channelName, subscriptionId, reciptId);
+        reciptId++;
+    }
+    else{ frame = "";}
 
     return frame;
 }
@@ -279,17 +283,9 @@ void StompProtocol::addSubscriptionByUser(const std::string &channelName){
 }
 
 bool StompProtocol::isAlreadySubForJoin(const std::string &channelName){
-    auto userSubscriptions = subscriptionById.find(channelName);
-    auto& channelsMap = userSubscriptions->second; // Inner map of channels
-
-    if(subscriptionById.empty()){ //if no one is subscribe we can do join
-        subscriptionId++; 
-        addSubscriptionByUser(channelName);
-        return true;
-    }
-
-    if (userSubscriptions == subscriptionById.end() || //if channel is not found
-        channelsMap.find(username) == channelsMap.end()) { // if user is not found
+   
+    if (subscriptionById.find(channelName) == subscriptionById.end() || // if channel not found
+        subscriptionById[channelName].find(username) == subscriptionById[channelName].end()) { // if user is not found
             subscriptionId++; 
             addSubscriptionByUser(channelName);
             return false;

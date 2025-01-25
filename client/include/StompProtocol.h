@@ -34,7 +34,7 @@ private:
     void splitBySpaces(const std::string& str, std::vector<std::string>& result);
     void split_str(const std::string& str, char delimiter, std::vector<std::string>& result);
 
-    bool isAlreadySub(const std::string &channelName);
+    bool isAlreadySubForJoin(const std::string &channelName);
     bool isAlreadySubForExit(const std::string &channelName);
     void addSubscriptionByUser(const std::string &channelName);
 
