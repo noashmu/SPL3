@@ -56,5 +56,6 @@ public:
     void processMessageFrame(const std::string& destination, const std::string& body);
     void run(); // Starts threads for input and response handling
     void SetIsLogin(bool);
+    void setConnectionHandler(ConnectionHandler*);
 
 };

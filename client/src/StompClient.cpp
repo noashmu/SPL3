@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
                 }
 
                 if (connectionHandler != nullptr) {
+                    connectionHandler->close();
                     delete connectionHandler; // Clean up the old connection handler
                 }
 
@@ -90,7 +91,8 @@ int main(int argc, char *argv[]) {
                 }
 
                 // Update protocol with the new connection handler
-                StompProtocol protocol(connectionHandler, true);
+              //  StompProtocol protocol(connectionHandler, true);
+                protocol.setConnectionHandler(connectionHandler);
                 CommandHandler commandHandler(protocol);
                 ResponseHandler responseHandler(protocol);
 
