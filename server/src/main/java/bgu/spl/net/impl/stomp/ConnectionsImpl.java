@@ -42,13 +42,13 @@ public class ConnectionsImpl<T> implements Connections<T>{
             }
         }
         else if (subscribers.isEmpty()) {
-            this.errorMsg="no subscribers to channel or channel doessn't exist";     
+            this.errorMsg="no subscribers to channel or channel doessn't exist";
            }
     }
 
     @Override
     public void disconnect(int connectionId) {
-        connectionHandlers.remove(connectionId);
+      //  connectionHandlers.remove(connectionId);
         topicSubscribers.forEach((channel, subscribers) -> subscribers.remove(connectionId));
     }
 
@@ -90,9 +90,17 @@ public class ConnectionsImpl<T> implements Connections<T>{
         connectionHandlers.put(connectionId ,handler);
 
     }
-    public String getErrorMsg()
+    public boolean IsSubcribers(String channel)
     {
-        return this.errorMsg;
+        if (topicSubscribers==null||topicSubscribers.isEmpty()) {
+            return false;
+        }
+        ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
+
+        if (subscribers!=null || subscribers.isEmpty()) {
+            return false;
+        }
+        return true;
     }
 
 }
