@@ -25,7 +25,6 @@ public class ConnectionsImpl<T> implements Connections<T>{
 
     @Override
     public boolean send(int connectionId, T msg) {
-        System.out.println(connectionId);
         ConnectionHandler<T> handler = connectionHandlers.get(connectionId);
         if (handler != null) {
             handler.send(msg);
@@ -39,10 +38,12 @@ public class ConnectionsImpl<T> implements Connections<T>{
         ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
         if (subscribers != null) {
             for (Integer connectionId : subscribers) {
-                System.out.println("entered send to channel sub");
                 send(connectionId, msg);
             }
         }
+        else if (subscribers.isEmpty()) {
+            this.errorMsg="no subscribers to channel or channel doessn't exist";     
+           }
     }
 
     @Override
@@ -89,6 +90,9 @@ public class ConnectionsImpl<T> implements Connections<T>{
         connectionHandlers.put(connectionId ,handler);
 
     }
-
+    public String getErrorMsg()
+    {
+        return this.errorMsg;
+    }
 
 }

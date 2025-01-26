@@ -58,7 +58,9 @@ std::string StompProtocol::createSendFrame(const std::string &destination, event
     frame += "user:" + event.getEventOwnerUser() + "\n";
     frame += "city:" + event.get_city() + "\n";
     frame += "event name:" + event.get_name() + "\n";
-    frame += "date time:" + std::to_string(event.get_date_time()) + "\n";
+    time_t epochTime = static_cast<time_t>(event.get_date_time());
+
+    frame += "date time:" + epochToDate(epochTime) + "\n";
     frame += "general information:\n";
     for (const auto &pair : event.get_general_information())
     {
@@ -103,6 +105,10 @@ std::string StompProtocol::report(const std::string &filePath)
         saveEvent(channelName, event);
         std::string frame = createSendFrame(channelName, event);
         connectionHandler->sendFrameAscii(frame, '\0');
+        std::string responseFrame;
+        connectionHandler->getFrameAscii(responseFrame, '\0');
+      //  std::cout<<"frame accepted:"<<responseFrame<<std::endl;
+        handleResponse(responseFrame,"MESSAGE");
     }
     std::cout<<"reported"<<std::endl;
     return frame;
@@ -148,6 +154,7 @@ std::string StompProtocol::createSummary(const std::string &description)
 
 void StompProtocol::saveSummaryToFile(const std::string &channel, const std::string &user, const std::string &outputFile)
 {
+
     auto userMap = eventsByChannelAndUser.find(user);
     auto channelMap = userMap->second.find(channel);
 
@@ -197,7 +204,7 @@ void StompProtocol::saveSummaryToFile(const std::string &channel, const std::str
     if (file.is_open())
     {
         file << "Channel: " << channel << std::endl;
-        file << "Stats:" << std::endl;
+        file << "Status:" << std::endl;
         file << "Total:" << events.size() << std::endl;
         file << "active: " << activeCount << "\n";
         file << "forces arrival at scene: " << forcesArrivalCount << "\n";
@@ -442,6 +449,8 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
             // Process the message to extract event information
             processMessageFrame(destination, body);
         }
+        std::cout<<frame<<std::endl;
+
     }
     else if (responseType == "ERROR")
     {

@@ -119,19 +119,19 @@ int main(int argc, char *argv[]) {
                 lock.unlock();
 
                 // Send frame to server
-                std::cout << "Frame being sent:\n" << frame << std::endl;
-                if (message.substr(0, message.find(' ')) != "report") {
+              //  std::cout << "Frame being sent:\n" << frame << std::endl;
+                if (message.substr(0, message.find(' ')) != "report" && message.substr(0, message.find(' ')) != "summary") {
                     if (!connectionHandler->sendFrameAscii(frame, '\0')) {
                         std::cout << "Error sending message: " << message << std::endl;
                        // shouldTerminate = true;
                        // break;
                     }
-                }
+                
 
                 // Receive responses from the server
                 std::string responseFrame;
                 if (connectionHandler->isConnected() && connectionHandler->getFrameAscii(responseFrame, '\0')) {
-                    std::cout << "Received from server: " << responseFrame << std::endl;
+               //     std::cout << "Received from server: " << responseFrame << std::endl;
                     responseHandler.handleResponse(responseFrame);
 
                     // Handle logout case
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
                         connectionHandler = nullptr;
                     }
                 }
-
+                }
                 lock.lock();
             }
         }
