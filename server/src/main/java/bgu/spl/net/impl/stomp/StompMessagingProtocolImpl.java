@@ -59,7 +59,6 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     }
 
     private void handleConnect(String[] lines) {
-        System.out.println("enter handle connect");
 
         String username = getHeader(lines, "login");
         String password = getHeader(lines, "passcode");
@@ -72,22 +71,19 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         boolean loginSuccessful = userManeger.login(username, password, connectionId);
     
         if (loginSuccessful) {
-            System.out.println("Connected");
             connections.send(connectionId, "CONNECTED\nversion:1.2\n\n");
         } else {
-          //  String errorMsg= 
             handleError("Login failed: User already logged in or incorrect credentials.");
         }    
     }
 
     private void handleSubscribe(String[] lines) {
         String destination = getHeader(lines, "destination");
-        String subscriptionId = getHeader(lines, "id");
         String receipt = getHeader(lines, "receipt"); // Optional receipt header
     
 
            // subscriptions.put(destination, Integer.parseInt(subscriptionId));
-            connections.subscribe(Integer.parseInt(subscriptionId), destination);
+            connections.subscribe(connectionId, destination);
             if (receipt != null) {
                 connections.send( connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
             }
@@ -102,7 +98,6 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
     
         if (subscriptionId != null) {
     
-    //        subscriptions.values().remove(Integer.parseInt(subscriptionId));
             connections.unsubscribe(connectionId, subscriptionId);
             if (receipt != null) {
                 connections.send(connectionId, "RECEIPT\nreceipt-id:" + receipt + "\n\n");
@@ -114,15 +109,12 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
 
     private void handleSend(String[] lines) {
         String destination = getHeader(lines, "destination");
-        System.out.println("destination is: "+destination);
-        //destination = destination.substring(1); //for destination without /
         String body = getBody(lines);
- //       System.out.println(body);
+        String frame=createFrameMessage(destination,body);
         if (destination != null) {
-            connections.send(destination, body);
+            connections.send(destination, frame);
         } else {
             
-            handleError(userManeger.getErrorMessage());
         }
     }
 
@@ -139,12 +131,10 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         }
 
         connections.disconnect(connectionId);
-       // shouldTerminate = true;
     }
 
     private void handleError(String errorMessage) {
         connections.send(connectionId, "ERROR\nmessage:" + errorMessage + "\n\n");
-        //shouldTerminate = true;
     }
 
     private String getHeader(String[] lines, String header) {
@@ -174,14 +164,14 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
    {
     return this.connections;
    }
-   public String createFrameMessage(String subscriptidDEST, String body)
+   public String createFrameMessage(String destinition, String body)
    {
         MessageId++;
         String frame="";
         frame+= "MESSAGE\n"+
-        "subscription:" + ""+"\n"
+        "subscription:" + connectionId+"\n"
         +"message-id:"+ MessageId +"\n"+
-        "destination:"+subscriptidDEST+"\n"+body+"\n"+"\n";
+        "destination:"+destinition+"\n"+body+"\n"+"\n";
 
         return frame;
    }
