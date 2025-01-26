@@ -13,7 +13,7 @@ public class UserManeger {
         errorMsg="";
     }
 
-    // Log in a user
+    // Login a user
     public synchronized boolean login(String username, String password, int connectionId) {
         if (!users.containsKey(username)) {
             users.put(username, password); // Register new user
@@ -30,12 +30,13 @@ public class UserManeger {
         }
         return false;
     }
+
     public String getErrorMessage()
     {
         return errorMsg;
     }
 
-    // Log out a user
+    // Logout a user
     public synchronized void logout(String username) {
         if (!activeUsers.contains(username)) {
             System.out.println("the user is not logged in");
