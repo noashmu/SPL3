@@ -12,7 +12,6 @@ std::string CommandHandler::handleCommand(const std::string& command) {
     std::string token;
     std::string frame="";
 
-    // Split the command into tokens
     while (iss >> token) {
         tokens.push_back(token);
     }
@@ -30,7 +29,6 @@ std::string CommandHandler::handleCommand(const std::string& command) {
 			splitBySpaces(command,commandDetails);
             std::vector<std::string> hostPort=split_str(commandDetails[1]);
             frame=protocol.login(hostPort[0],hostPort[1], tokens[2], tokens[3]);
-            //protocol.addSubscriptionByUser(tokens[2]);
     } 
     else if (action == "join") {
         if (tokens.size() != 2) {
@@ -84,18 +82,10 @@ std::string CommandHandler::handleCommand(const std::string& command) {
 }
 
     void CommandHandler::splitBySpaces(const std::string& str, std::vector<std::string>& result) {
-        std::istringstream iss(str); // זרם קלט מתוך המחרוזת
+        std::istringstream iss(str); 
         std::string word;
-        while (iss >> word) { // קרא מילה אחת בכל פעם לפי רווחים
+        while (iss >> word) { 
             result.push_back(word);
         }
     }
-        // CommandHandler& CommandHandler::operator=(const CommandHandler& other)
-        // {
-        //     if (this!= &other)
-        //     {
-        //         this->protocol=other.protocol;
-        //     }
-            
-        //     return *this;
-        // }
+    

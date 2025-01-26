@@ -93,12 +93,12 @@ public class ConnectionsImpl<T> implements Connections<T>{
     
     public boolean IsSubcribers(String channel)
     {
-        if (topicSubscribers==null||topicSubscribers.isEmpty()) {
+        if (topicSubscribers==null) {
             return false;
         }
         ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
 
-        if (subscribers!=null || subscribers.isEmpty()) {
+        if (subscribers==null || subscribers.isEmpty()) {
             return false;
         }
         return true;

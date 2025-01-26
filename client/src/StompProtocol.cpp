@@ -21,8 +21,7 @@ std::string StompProtocol::createConnectFrame(const std::string &host, const std
     frame += "host:stomp.cs.bgu.ac.il\n";
     frame += "login:" + username + "\n";
     frame += "passcode:" + password + "\n";
-    frame += "\n"; // Empty line indicating the end of the headers
-    // frame += '\0'; // Null character to terminate the STOMP frame
+    frame += "\n"; 
 
     return frame;
 }
@@ -33,8 +32,7 @@ std::string StompProtocol::createSubscribeFrame(const std::string &channel, int 
     frame += "destination:" + channel + "\n";
     frame += "id:" + std::to_string(id) + "\n";
     frame += "receipt:" + std::to_string(receipt) + "\n";
-    frame += "\n"; // Blank line after headers
- //   frame += '\0'; // Null character to terminate the frame
+    frame += "\n"; 
 
     return frame;
 }
@@ -44,8 +42,7 @@ std::string StompProtocol::createUnsubscribeFrame(int id, int receipt)
     std::string frame = "UNSUBSCRIBE\n";
     frame += "id:" + std::to_string(id) + "\n";
     frame += "receipt:" + std::to_string(receipt) + "\n";
-    frame += "\n"; // Empty line indicating the end of the headers
- //   frame += '\0'; // Null character to terminate the STOMP frame
+    frame += "\n"; 
 
     return frame;
 }
@@ -54,7 +51,7 @@ std::string StompProtocol::createSendFrame(const std::string &destination, event
 {
     std::string frame = "SEND\n";
     frame += "destination:" + destination + "\n";
-    frame += "\n"; // Empty line indicating the end of the headers
+    frame += "\n"; 
     frame += "user:" + event.getEventOwnerUser() + "\n";
     frame += "city:" + event.get_city() + "\n";
     frame += "event name:" + event.get_name() + "\n";
@@ -67,8 +64,7 @@ std::string StompProtocol::createSendFrame(const std::string &destination, event
         frame += pair.first + ":" + pair.second + "\n";
     }
     frame += "description:\n" + event.get_description() + "\n";
-    frame += "\n"; // Empty line indicating the end of the headers
- //   frame += '\0'; // Null character to terminate the STOMP frame
+    frame += "\n"; 
 
     return frame;
 }
@@ -100,14 +96,12 @@ std::string StompProtocol::report(const std::string &filePath)
     // Save and send each event.
     for (auto &event : events)
     {   
-        //std::cout<<""<<std:endl;
         event.setEventOwnerUser(username);
         saveEvent(channelName, event);
         std::string frame = createSendFrame(channelName, event);
         connectionHandler->sendFrameAscii(frame, '\0');
         std::string responseFrame;
         connectionHandler->getFrameAscii(responseFrame, '\0');
-      //  std::cout<<"frame accepted:"<<responseFrame<<std::endl;
         handleResponse(responseFrame,"MESSAGE");
     }
     std::cout<<"reported"<<std::endl;
@@ -127,22 +121,22 @@ void StompProtocol::saveEvent(const std::string &channelName, const event &event
     eventsByChannelAndUser[username][channelName].push_back(event1);
 }
 
-// Helper function: Convert epoch to date string
+// Convert epoch to date string
 std::string StompProtocol::epochToDate(time_t epochTime)
 {
-    char buffer[20]; // Enough to hold "DD/MM/YY HH:MM"
+    char buffer[20]; 
     std::tm *tmPtr = std::localtime(&epochTime); // Convert epoch to local time
     if (tmPtr != nullptr)
     {
         std::strftime(buffer, sizeof(buffer), "%d/%m/%y %H:%M", tmPtr); // Format the time
         return std::string(buffer); // Return formatted time as string
     }
-    return "Invalid time"; // If conversion fails, return error message
+    return "Invalid time"; 
 }
 
 
 
-// Helper function: Create a summary from description
+// Create a summary from description
 std::string StompProtocol::createSummary(const std::string &description)
 {
     if (description.size() <= 27)
@@ -230,7 +224,7 @@ for (const auto &event : events)
 }
 
 StompProtocol::StompProtocol(ConnectionHandler* c, bool islogin) : connectionHandler(c), loggedIn(islogin), username(""),reciptId(1),subscriptionId(1),eventsByChannelAndUser(),receiptActions(),subscriptionById()
-{ //: loggedIn(false), username(""), inputThread(), responseThread()
+{ 
 
 }
 
@@ -244,10 +238,10 @@ void StompProtocol::run()
 
 void StompProtocol::splitBySpaces(const std::string &str, std::vector<std::string> &result)
 {
-    std::istringstream iss(str); // זרם קלט מתוך המחרוזת
+    std::istringstream iss(str); 
     std::string word;
     while (iss >> word)
-    { // קרא מילה אחת בכל פעם לפי רווחים
+    {
         result.push_back(word);
     }
 }
@@ -272,7 +266,6 @@ std::string StompProtocol::login(const std::string &host, const std::string &por
 
     // Create the CONNECT frame
     std::string frame = createConnectFrame(host, user, password);
-    std::cout<<frame<<std::endl;
 
     username = user;
 
@@ -324,12 +317,10 @@ bool StompProtocol::isAlreadySubForExit(const std::string &channelName){
      // Check if the channel exists in the subscriptionById map
     auto channelIt = subscriptionById.find(channelName);
 
-    // If the channel does not exist, return false
     if (channelIt == subscriptionById.end()) {
         return false;
     }
 
-    // Access the inner map (users subscribed to this channel)
     auto& usersMap = channelIt->second;
 
     // Check if the user exists in the inner map
@@ -338,7 +329,7 @@ bool StompProtocol::isAlreadySubForExit(const std::string &channelName){
     // If the user exists, erase them from the map and return true
     if (userIt != usersMap.end()) {
         usersMap.erase(userIt);
-        // If the inner map becomes empty after removal, erase the outer map entry (channel)
+
         if (usersMap.empty()) {
             subscriptionById.erase(channelIt);
         }
@@ -411,10 +402,6 @@ void StompProtocol::handleResponse(const std::string &frame, const std::string &
                 if (action == "logout")
                 {
                     std::cout << "Logout successful!" << std::endl;
-                    // if (connectionHandler!=nullptr)
-                    // {
-                    //     connectionHandler->close();
-                    // }
                     
                 }
                 else if (action.rfind("join:", 0) == 0)
@@ -515,10 +502,7 @@ void StompProtocol::processMessageFrame(const std::string &destination, const st
     }
     eventsByChannelAndUser[reporter][channelName].push_back(newEvent);
 }
-//   StompProtocol& StompProtocol::operator=(const StompProtocol& other)
-//         {
 
-//         }
     void StompProtocol::SetIsLogin(bool islogin)
     {
         this->loggedIn=islogin;
