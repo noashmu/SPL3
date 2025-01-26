@@ -1,4 +1,6 @@
 package bgu.spl.net.impl.stomp;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import bgu.spl.net.api.*;
 import bgu.spl.net.srv.Connections;
 
@@ -112,9 +114,15 @@ public class StompMessagingProtocolImpl implements StompMessagingProtocol<String
         String body = getBody(lines);
         String frame=createFrameMessage(destination,body);
         if (destination != null) {
-            connections.send(destination, frame);
+            if (((ConnectionsImpl)connections).IsSubcribers(destination)) {
+                connections.send(destination, frame);
+            }
+            else
+            {
+                handleError("The channel doesn't have subscribers");
+            }
         } else {
-            
+            handleError("The channel doesn't exist");
         }
     }
 
