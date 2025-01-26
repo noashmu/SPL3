@@ -27,39 +27,8 @@ public abstract class BaseServer<T> implements Server<T> {
         this.protocolFactory = protocolFactory;
         this.encdecFactory = encdecFactory;
 		this.sock = null;
-     }
+    }
     
-
-    @Override
-    // public void serve() {
-
-    //     try (ServerSocket serverSock = new ServerSocket(port)) {
-	// 		System.out.println("Server started");
-
-    //         this.sock = serverSock; //just to be able to close
-
-    //         while (!Thread.currentThread().isInterrupted()) {
-    //  //           System.out.println("entered while");
-
-    //             Socket clientSock = serverSock.accept();
-    //             this.count.incrementAndGet();
-    //             protocolFactory.get().start(count.get(), ConnectionsImpl.getInstance());
-
-
-    //             BlockingConnectionHandler<T> handler = new BlockingConnectionHandler<>(
-    //                     clientSock,
-    //                     encdecFactory.get(),
-    //                     protocolFactory.get());
-                        
-    //                 ConnectionsImpl.getInstance().addConnection((ConnectionHandler<Object>)handler,count.get());
-    //                 execute(handler);
-    //         }
-
-    //     } catch (IOException ex) {
-    //     }
-
-    //     System.out.println("server closed!!!");
-    // }
     public void serve() {
         try (ServerSocket serverSock = new ServerSocket(port)) {
             System.out.println("Server started");
@@ -80,7 +49,8 @@ public abstract class BaseServer<T> implements Server<T> {
 
                 execute(handler);
             }
-        } catch (IOException e) {
+        } 
+        catch (IOException e) {
             e.printStackTrace();
         }
     }

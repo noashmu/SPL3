@@ -48,7 +48,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
 
     @Override
     public void disconnect(int connectionId) {
-      //  connectionHandlers.remove(connectionId);
+        connectionHandlers.remove(connectionId);
         topicSubscribers.forEach((channel, subscribers) -> subscribers.remove(connectionId));
     }
 
@@ -74,7 +74,6 @@ public class ConnectionsImpl<T> implements Connections<T>{
             else{
                 System.out.println("user is not subscribe to channel "+channel );
             }
-        
         }
     }
 
@@ -85,11 +84,13 @@ public class ConnectionsImpl<T> implements Connections<T>{
         connectionHandlers.put(connectionId, handler);
         return connectionId;
     }
+
     public void addConnection(ConnectionHandler<T> handler,int connectionId)
     {
         connectionHandlers.put(connectionId ,handler);
 
     }
+    
     public boolean IsSubcribers(String channel)
     {
         if (topicSubscribers==null||topicSubscribers.isEmpty()) {

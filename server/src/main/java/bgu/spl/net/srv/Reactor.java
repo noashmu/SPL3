@@ -62,9 +62,11 @@ public class Reactor<T> implements Server<T> {
 
                     if (!key.isValid()) {
                         continue;
-                    } else if (key.isAcceptable()) {
+                    } 
+                    else if (key.isAcceptable()) {
                         handleAccept(serverSock, selector);
-                    } else {
+                    } 
+                    else {
                         handleReadWrite(key);
                     }
                 }
@@ -74,9 +76,8 @@ public class Reactor<T> implements Server<T> {
             }
 
         } catch (ClosedSelectorException ex) {
-            //do nothing - server was requested to be closed
+            //do nothing because server was requested to be closed
         } catch (IOException ex) {
-            //this is an error
             ex.printStackTrace();
         }
 
@@ -84,7 +85,7 @@ public class Reactor<T> implements Server<T> {
         pool.shutdown();
     }
 
-    /*package*/ void updateInterestedOps(SocketChannel chan, int ops) {
+    void updateInterestedOps(SocketChannel chan, int ops) {
         final SelectionKey key = chan.keyFor(selector);
         if (Thread.currentThread() == selectorThread) {
             key.interestOps(ops);
@@ -96,25 +97,14 @@ public class Reactor<T> implements Server<T> {
         }
     }
 
-
-    // private void handleAccept(ServerSocketChannel serverChan, Selector selector) throws IOException {
-    //     SocketChannel clientChan = serverChan.accept();
-    //     clientChan.configureBlocking(false);
-    //     final NonBlockingConnectionHandler<T> handler = new NonBlockingConnectionHandler<>(
-    //             readerFactory.get(),
-    //             protocolFactory.get(),
-    //             clientChan,
-    //             this);
-    //     clientChan.register(selector, SelectionKey.OP_READ, handler);
-    // }
     private void handleAccept(ServerSocketChannel serverChan, Selector selector) throws IOException {
         SocketChannel clientChan = serverChan.accept();
         clientChan.configureBlocking(false);
         
-        int connectionId = connectionCounter.incrementAndGet(); // Generate unique connectionId
+        int connectionId = connectionCounter.incrementAndGet();
         
         MessagingProtocol<T> protocol = protocolFactory.get();
-        protocol.start(connectionId, ConnectionsImpl.getInstance()); // Initialize protocol with connectionId
+        protocol.start(connectionId, ConnectionsImpl.getInstance());
     
         NonBlockingConnectionHandler<T> handler = new NonBlockingConnectionHandler<>(
             readerFactory.get(),
