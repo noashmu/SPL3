@@ -55,19 +55,6 @@ bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
 bool ConnectionHandler::sendBytes(const char bytes[], int bytesToWrite) {
 	int tmp = 0;
 	boost::system::error_code error;
-	// std::cout << "Socket " << socket_.native_handle() << std::endl;	
-
-	// if (!this->isConnected())
-    //             {
-    //                 std::cout<<"Connection lost or not established."<<std::endl;
-    //             }
-	// if (!socket_.is_open()) {
-    // std::cout << "Socket is not open." << std::endl;
-	// }
-	// if (bytes == nullptr || bytesToWrite <= 0) {
-    // std::cerr << "Invalid input to sendBytes: bytes is null or bytesToWrite <= 0" << std::endl;
-	// return false;
-	// }
 
 	try {
 		while (!error && bytesToWrite > tmp) {
@@ -98,7 +85,6 @@ bool ConnectionHandler::getFrameAscii(std::string &frame, char delimiter) {
 	char ch;
 	// Stop when we encounter the null character.
 	// Notice that the null character is not appended to the frame string.
-//	std::cout <<"entered get frame ascii"<< std::endl;
 	try {
 		do {
 			if (!getBytes(&ch, 1)) {
@@ -119,14 +105,13 @@ bool ConnectionHandler::sendFrameAscii(const std::string &frame, char delimiter)
 	{
 		std::cout<<"disconnected from send frame ascii"<<std::endl;
 	}
-	//std::cout << "Frame to send: " << frame << std::endl;
 
 	bool result = sendBytes(frame.c_str(), frame.length());
 	if (!result) return false;
 	return sendBytes(&delimiter, 1);
 }
 
-// Close down the connection properly.
+// Close down the connection
 void ConnectionHandler::close() {
 	try {
 		socket_.close();
@@ -134,27 +119,6 @@ void ConnectionHandler::close() {
 		std::cout << "closing failed: connection already closed" << std::endl;
 	}
 }
-
-    // // Move constructor
-    // ConnectionHandler::ConnectionHandler(ConnectionHandler&& other) 
-    //     : host_(std::move(other.host_)), port_(other.port_),
-    //       io_service_(std::move(other.io_service_)), socket_(std::move(other.socket_)) {}
-
-    // // Move assignment operator
-    // void ConnectionHandler::operator=(ConnectionHandler&& other) {
-    //     if (this != &other) {
-    //         // Clean up existing resources
-    //         close();
-
-    //         // Transfer ownership
-    //         const_cast<std::string&>(host_) = std::move(other.host_); // Host and port need casting due to const
-    //         const_cast<short&>(port_) = other.port_;
-    //         io_service_ = std::move(other.io_service_);
-    //         socket_ = std::move(other.socket_);
-    //     }
-    //     return *this;
-    // }
-
 
     ConnectionHandler::ConnectionHandler(const ConnectionHandler& other):host_(other.host_),port_(other.port_),io_service_(),
                                                                 socket_(io_service_),isConnect(false)

@@ -48,7 +48,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
 
     @Override
     public void disconnect(int connectionId) {
-      //  connectionHandlers.remove(connectionId);
+        connectionHandlers.remove(connectionId);
         topicSubscribers.forEach((channel, subscribers) -> subscribers.remove(connectionId));
     }
 
@@ -92,12 +92,12 @@ public class ConnectionsImpl<T> implements Connections<T>{
     }
     public boolean IsSubcribers(String channel)
     {
-        if (topicSubscribers==null||topicSubscribers.isEmpty()) {
+        if (topicSubscribers==null) {
             return false;
         }
         ConcurrentLinkedQueue<Integer> subscribers = topicSubscribers.get(channel);
 
-        if (subscribers!=null || subscribers.isEmpty()) {
+        if (subscribers==null || subscribers.isEmpty()) {
             return false;
         }
         return true;
